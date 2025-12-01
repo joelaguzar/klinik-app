@@ -74,7 +74,9 @@ object KlinikGlassColors {
 }
 
 @Composable
-fun KlinikSignInScreen() {
+fun KlinikSignInScreen(
+    onNavigateToSignUp: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
 
     Box(
@@ -260,7 +262,7 @@ fun KlinikSignInScreen() {
                     color = KlinikGlassColors.Blue,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
-                    modifier = Modifier.clickable { }
+                    modifier = Modifier.clickable { onNavigateToSignUp() }
                 )
             }
         }
