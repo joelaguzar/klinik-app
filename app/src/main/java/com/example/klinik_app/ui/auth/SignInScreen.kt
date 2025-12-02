@@ -75,7 +75,8 @@ object KlinikGlassColors {
 
 @Composable
 fun KlinikSignInScreen(
-    onNavigateToSignUp: () -> Unit = {}
+    onNavigateToSignUp: () -> Unit = {},
+    onSignInSuccess: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
@@ -97,33 +98,15 @@ fun KlinikSignInScreen(
 
             Spacer(modifier = Modifier.height(80.dp))
 
-            // header
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+            // header - centered logo
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
-                // logo
                 Image(
                     painter = painterResource(id = R.drawable.klinik_logo),
                     contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(50.dp) // Bigger size
-                        // Optional: Soft shadow behind the image itself if it has transparency
-                        .shadow(elevation = 0.dp, shape = CircleShape)
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // klinik text
-                Text(
-                    text = "Klinik",
-                    style = TextStyle(
-                        brush = KlinikGlassColors.TitleGradient, // <--- THE MAGIC GRADIENT
-                        fontSize = 42.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = (3).sp
-                    )
+                    modifier = Modifier.size(100.dp)
                 )
             }
 
@@ -201,7 +184,7 @@ fun KlinikSignInScreen(
 
                     // login button
                     Button(
-                        onClick = { },
+                        onClick = { onSignInSuccess() },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)

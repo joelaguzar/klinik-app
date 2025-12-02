@@ -186,30 +186,15 @@ fun KlinikSignUpScreen(
         ) {
             Spacer(modifier = Modifier.height(80.dp))
 
-            // header section
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
+            // header section - centered logo
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+                contentAlignment = Alignment.Center
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.klinik_logo),
                     contentDescription = "Logo",
-                    modifier = Modifier
-                        .size(50.dp)
-                        .shadow(elevation = 0.dp, shape = CircleShape)
-                )
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                Text(
-                    text = "Klinik",
-                    style = TextStyle(
-                        brush = KlinikGlassColors.TitleGradient,
-                        fontSize = 42.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        letterSpacing = 3.sp
-                    )
+                    modifier = Modifier.size(100.dp)
                 )
             }
 
@@ -294,41 +279,33 @@ fun KlinikSignUpScreen(
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // name fields
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        // First Name
-                        Box(modifier = Modifier.weight(1f)) {
-                            SignUpTextField(
-                                value = firstName,
-                                onValueChange = {
-                                    firstName = it
-                                    if (firstNameError != null) validateFirstName()
-                                },
-                                placeholder = "First Name",
-                                icon = Icons.Default.Person,
-                                errorMessage = firstNameError,
-                                keyboardType = KeyboardType.Text
-                            )
-                        }
+                    // First Name
+                    SignUpTextField(
+                        value = firstName,
+                        onValueChange = {
+                            firstName = it
+                            if (firstNameError != null) validateFirstName()
+                        },
+                        placeholder = "First Name",
+                        icon = Icons.Default.Person,
+                        errorMessage = firstNameError,
+                        keyboardType = KeyboardType.Text
+                    )
 
-                        // Last Name
-                        Box(modifier = Modifier.weight(1f)) {
-                            SignUpTextField(
-                                value = lastName,
-                                onValueChange = {
-                                    lastName = it
-                                    if (lastNameError != null) validateLastName()
-                                },
-                                placeholder = "Last Name",
-                                icon = Icons.Default.Person,
-                                errorMessage = lastNameError,
-                                keyboardType = KeyboardType.Text
-                            )
-                        }
-                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Last Name
+                    SignUpTextField(
+                        value = lastName,
+                        onValueChange = {
+                            lastName = it
+                            if (lastNameError != null) validateLastName()
+                        },
+                        placeholder = "Last Name",
+                        icon = Icons.Default.Person,
+                        errorMessage = lastNameError,
+                        keyboardType = KeyboardType.Text
+                    )
 
                     Spacer(modifier = Modifier.height(16.dp))
 

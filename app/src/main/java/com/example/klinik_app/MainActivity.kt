@@ -14,9 +14,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.example.klinik_app.ui.auth.KlinikSignUpScreen
+import com.example.klinik_app.ui.patient.PatientHomeScreen
 
-enum class AuthScreen {
-    SignIn, SignUp
+enum class AppScreen {
+    SignIn, SignUp, PatientHome
 }
 
 class MainActivity : ComponentActivity() {
@@ -29,7 +30,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    AuthNavigation()
+                    AppNavigation()
                 }
             }
         }
@@ -37,15 +38,17 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun AuthNavigation() {
-    var currentScreen by remember { mutableStateOf(AuthScreen.SignIn) }
+fun AppNavigation() {
+    var currentScreen by remember { mutableStateOf(AppScreen.SignIn) }
 
     when (currentScreen) {
-        AuthScreen.SignIn -> KlinikSignInScreen(
-            onNavigateToSignUp = { currentScreen = AuthScreen.SignUp }
+        AppScreen.SignIn -> KlinikSignInScreen(
+            onNavigateToSignUp = { currentScreen = AppScreen.SignUp },
+            onSignInSuccess = { currentScreen = AppScreen.PatientHome }
         )
-        AuthScreen.SignUp -> KlinikSignUpScreen(
-            onNavigateToSignIn = { currentScreen = AuthScreen.SignIn }
+        AppScreen.SignUp -> KlinikSignUpScreen(
+            onNavigateToSignIn = { currentScreen = AppScreen.SignIn }
         )
+        AppScreen.PatientHome -> PatientHomeScreen()
     }
 }
