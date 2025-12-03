@@ -64,9 +64,24 @@ data class Doctor(
     val imageRes: Int
 )
 
+data class PatientInfo(
+    val age: Int,
+    val height: String,
+    val weight: String,
+    val bloodType: String
+)
+
 @Composable
 fun HomeContent() {
     val scrollState = rememberScrollState()
+    
+    // Sample patient info - in real app this would come from a ViewModel/repository
+    val patientInfo = PatientInfo(
+        age = 28,
+        height = "175 cm",
+        weight = "70 kg",
+        bloodType = "O+"
+    )
     
     Column(
         modifier = Modifier
@@ -76,6 +91,10 @@ fun HomeContent() {
     ) {
         // header
         HeaderSection()
+        
+        // Patient Info Section
+        PatientInfoSection(patientInfo = patientInfo)
+        
         Spacer(modifier = Modifier.height(24.dp))
 
         // search
@@ -175,6 +194,80 @@ fun HeaderSection() {
                 )
             }
         }
+    }
+}
+
+@Composable
+fun PatientInfoSection(patientInfo: PatientInfo) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        PatientInfoItem(
+            iconRes = R.drawable.ic_age,
+            label = "Age",
+            value = "${patientInfo.age} yrs",
+            backgroundColor = Color(0xFFE3F2FD)
+        )
+        PatientInfoItem(
+            iconRes = R.drawable.ic_height,
+            label = "Height",
+            value = patientInfo.height,
+            backgroundColor = Color(0xFFFCE4EC)
+        )
+        PatientInfoItem(
+            iconRes = R.drawable.ic_weight,
+            label = "Weight",
+            value = patientInfo.weight,
+            backgroundColor = Color(0xFFF3E5F5)
+        )
+        PatientInfoItem(
+            iconRes = R.drawable.ic_blood,
+            label = "Blood",
+            value = patientInfo.bloodType,
+            backgroundColor = Color(0xFFFFEBEE)
+        )
+    }
+}
+
+@Composable
+fun PatientInfoItem(
+    iconRes: Int,
+    label: String,
+    value: String,
+    backgroundColor: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(backgroundColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = label,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = PatientHomeColors.TextGray,
+            fontWeight = FontWeight.Normal
+        )
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = PatientHomeColors.TextDark
+        )
     }
 }
 
