@@ -1,10 +1,12 @@
-package com.example.klinik_app.ui.patient
+package com.example.klinik_app.ui.doctor
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -23,10 +25,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Height
-import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.MedicalServices
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Bloodtype
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.Work
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -48,22 +50,21 @@ import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
 import com.example.klinik_app.data.MockData
 
-///TODO: FIREBASE - PATIENT PROFILE
-/// 1. Create ProfileViewModel with PatientRepository
-/// 2. Observe current patient data in real-time:
-///    - firestore.collection("patients").document(currentUserId).snapshots()
+///TODO: FIREBASE - DOCTOR PROFILE
+/// 1. Create DoctorProfileViewModel with DoctorRepository
+/// 2. Observe current doctor data in real-time:
+///    - firestore.collection("doctors").document(currentUserId).snapshots()
 /// 3. Implement profile update:
-///    - firestore.collection("patients").document(currentUserId).update(updatedData)
+///    - firestore.collection("doctors").document(currentUserId).update(updatedData)
 /// 4. Implement profile image upload:
-///    - storage.reference.child("profile_images/$userId.jpg").putFile(imageUri)
-///    - Update imageUrl field in patient document
-/// 5. Add edit mode for profile fields
-/// 6. Implement account deletion with confirmation
+///    - storage.reference.child("doctor_images/$userId.jpg").putFile(imageUri)
+///    - Update imageUrl field in doctor document
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun ProfileScreen() {
+fun DoctorProfileScreen() {
     val scrollState = rememberScrollState()
-    val currentPatient = remember { MockData.getCurrentPatient() }
+    val currentDoctor = remember { MockData.getCurrentDoctor() }
     
     Column(
         modifier = Modifier
@@ -78,16 +79,16 @@ fun ProfileScreen() {
             text = "My Profile",
             fontSize = 24.sp,
             fontWeight = FontWeight.Bold,
-            color = PatientHomeColors.TextDark
+            color = DoctorHomeColors.TextDark
         )
         
         Spacer(modifier = Modifier.height(24.dp))
         
-        if (currentPatient != null) {
+        if (currentDoctor != null) {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(20.dp),
-                colors = CardDefaults.cardColors(containerColor = PatientHomeColors.White),
+                colors = CardDefaults.cardColors(containerColor = DoctorHomeColors.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
             ) {
                 Column(
@@ -103,7 +104,7 @@ fun ProfileScreen() {
                             .background(Color(0xFFF3F4F6))
                     ) {
                         Image(
-                            painter = painterResource(id = currentPatient.imageRes),
+                            painter = painterResource(id = currentDoctor.imageRes),
                             contentDescription = "Profile Picture",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -113,17 +114,81 @@ fun ProfileScreen() {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = currentPatient.fullName,
+                        text = currentDoctor.fullName,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PatientHomeColors.TextDark
+                        color = DoctorHomeColors.TextDark
                     )
 
                     Text(
-                        text = currentPatient.email,
+                        text = "${currentDoctor.position} • ${currentDoctor.field}",
                         fontSize = 14.sp,
-                        color = PatientHomeColors.TextGray
+                        color = DoctorHomeColors.Primary
                     )
+
+                    Text(
+                        text = currentDoctor.email,
+                        fontSize = 13.sp,
+                        color = DoctorHomeColors.TextGray
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = "Rating",
+                            tint = DoctorHomeColors.StarYellow,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "${currentDoctor.ratings}",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = DoctorHomeColors.TextDark
+                        )
+                        Text(
+                            text = " (${currentDoctor.totalReviews} reviews)",
+                            fontSize = 14.sp,
+                            color = DoctorHomeColors.TextGray
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Specializations",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = DoctorHomeColors.TextDark
+            )
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            
+            FlowRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                currentDoctor.tags.forEach { tag ->
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(DoctorHomeColors.PrimaryLight)
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = tag,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = DoctorHomeColors.Primary
+                        )
+                    }
                 }
             }
             
@@ -133,7 +198,7 @@ fun ProfileScreen() {
                 text = "Personal Information",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = PatientHomeColors.TextDark
+                color = DoctorHomeColors.TextDark
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -141,27 +206,37 @@ fun ProfileScreen() {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PatientHomeColors.White),
+                colors = CardDefaults.cardColors(containerColor = DoctorHomeColors.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    ProfileInfoRow(
+                    DoctorProfileInfoRow(
                         icon = Icons.Default.Person,
                         label = "Sex",
-                        value = currentPatient.sex.displayName()
+                        value = currentDoctor.sex.displayName()
                     )
-                    ProfileInfoRow(
+                    DoctorProfileInfoRow(
                         icon = Icons.Default.CalendarToday,
                         label = "Birthdate",
-                        value = currentPatient.birthdate
+                        value = currentDoctor.birthdate
                     )
-                    ProfileInfoRow(
+                    DoctorProfileInfoRow(
                         icon = Icons.Default.Email,
                         label = "Email",
-                        value = currentPatient.email
+                        value = currentDoctor.email
+                    )
+                    DoctorProfileInfoRow(
+                        icon = Icons.Default.Work,
+                        label = "Position",
+                        value = currentDoctor.position
+                    )
+                    DoctorProfileInfoRow(
+                        icon = Icons.Default.MedicalServices,
+                        label = "Field",
+                        value = currentDoctor.field
                     )
                 }
             }
@@ -169,10 +244,10 @@ fun ProfileScreen() {
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Health Information",
+                text = "About",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = PatientHomeColors.TextDark
+                color = DoctorHomeColors.TextDark
             )
             
             Spacer(modifier = Modifier.height(12.dp))
@@ -180,29 +255,16 @@ fun ProfileScreen() {
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PatientHomeColors.White),
+                colors = CardDefaults.cardColors(containerColor = DoctorHomeColors.White),
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    ProfileInfoRow(
-                        icon = Icons.Default.Height,
-                        label = "Height",
-                        value = currentPatient.height
-                    )
-                    ProfileInfoRow(
-                        icon = Icons.Default.MonitorWeight,
-                        label = "Weight",
-                        value = currentPatient.weight
-                    )
-                    ProfileInfoRow(
-                        icon = Icons.Default.Bloodtype,
-                        label = "Blood Type",
-                        value = currentPatient.bloodType
-                    )
-                }
+                Text(
+                    text = currentDoctor.description,
+                    fontSize = 14.sp,
+                    color = DoctorHomeColors.TextGray,
+                    lineHeight = 22.sp,
+                    modifier = Modifier.padding(16.dp)
+                )
             }
             
             Spacer(modifier = Modifier.height(120.dp))
@@ -216,17 +278,17 @@ fun ProfileScreen() {
                     verticalArrangement = Arrangement.Center
                 ) {
                     Text(
-                        text = "Profile",
+                        text = "Doctor Profile",
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
-                        color = PatientHomeColors.TextDark
+                        color = DoctorHomeColors.TextDark
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Please sign in to view your profile",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Medium,
-                        color = PatientHomeColors.TextGray
+                        color = DoctorHomeColors.TextGray
                     )
                 }
             }
@@ -235,7 +297,7 @@ fun ProfileScreen() {
 }
 
 @Composable
-private fun ProfileInfoRow(
+private fun DoctorProfileInfoRow(
     icon: ImageVector,
     label: String,
     value: String
@@ -248,13 +310,13 @@ private fun ProfileInfoRow(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
-                .background(PatientHomeColors.PrimaryLight),
+                .background(DoctorHomeColors.PrimaryLight),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = label,
-                tint = PatientHomeColors.Primary,
+                tint = DoctorHomeColors.Primary,
                 modifier = Modifier.size(20.dp)
             )
         }
@@ -265,13 +327,13 @@ private fun ProfileInfoRow(
             Text(
                 text = label,
                 fontSize = 12.sp,
-                color = PatientHomeColors.TextGray
+                color = DoctorHomeColors.TextGray
             )
             Text(
                 text = value,
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
-                color = PatientHomeColors.TextDark
+                color = DoctorHomeColors.TextDark
             )
         }
     }
@@ -279,8 +341,8 @@ private fun ProfileInfoRow(
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewProfileScreen() {
+fun PreviewDoctorProfileScreen() {
     MaterialTheme {
-        ProfileScreen()
+        DoctorProfileScreen()
     }
 }

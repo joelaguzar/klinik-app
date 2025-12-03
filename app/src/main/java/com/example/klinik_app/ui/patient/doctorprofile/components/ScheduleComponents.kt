@@ -34,9 +34,6 @@ import java.time.LocalDate
 import java.time.format.TextStyle
 import java.util.Locale
 
-/**
- * Section for selecting appointment schedule date.
- */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun SchedulesSection(
@@ -46,12 +43,10 @@ fun SchedulesSection(
     onMonthPickerClick: () -> Unit = {}
 ) {
     Column {
-        // Header with month selector
         ScheduleHeader(onMonthPickerClick = onMonthPickerClick)
         
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Days Row
+
         ScheduleDaysRow(
             scheduleDays = scheduleDays,
             selectedDayIndex = selectedDayIndex,
@@ -60,9 +55,6 @@ fun SchedulesSection(
     }
 }
 
-/**
- * Header row with "Schedules" title and month selector.
- */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun ScheduleHeader(onMonthPickerClick: () -> Unit) {
@@ -82,9 +74,6 @@ private fun ScheduleHeader(onMonthPickerClick: () -> Unit) {
     }
 }
 
-/**
- * Clickable month selector showing current month and year.
- */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun MonthSelector(onClick: () -> Unit) {
@@ -109,9 +98,6 @@ private fun MonthSelector(onClick: () -> Unit) {
     }
 }
 
-/**
- * Horizontally scrollable row of schedule day items.
- */
 @Composable
 fun ScheduleDaysRow(
     scheduleDays: List<ScheduleDay>,
@@ -134,9 +120,6 @@ fun ScheduleDaysRow(
     }
 }
 
-/**
- * Individual day item in the schedule picker.
- */
 @Composable
 fun ScheduleDayItem(
     day: ScheduleDay,

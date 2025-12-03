@@ -35,9 +35,6 @@ import androidx.compose.ui.unit.sp
 import com.example.klinik_app.ui.patient.Doctor
 import com.example.klinik_app.ui.patient.PatientHomeColors
 
-/**
- * Top app bar for the doctor profile screen.
- */
 @Composable
 fun DoctorProfileTopBar(onBackClick: () -> Unit) {
     Row(
@@ -70,9 +67,6 @@ fun DoctorProfileTopBar(onBackClick: () -> Unit) {
     }
 }
 
-/**
- * Section displaying doctor's main information including photo, name, and rating.
- */
 @Composable
 fun DoctorInfoSection(doctor: Doctor) {
     Row(
@@ -140,9 +134,6 @@ fun DoctorInfoSection(doctor: Doctor) {
     }
 }
 
-/**
- * Row of doctor specialty tags.
- */
 @Composable
 fun DoctorTagsRow(tags: List<String>) {
     Row(
@@ -154,9 +145,6 @@ fun DoctorTagsRow(tags: List<String>) {
     }
 }
 
-/**
- * Individual tag chip for doctor specialties.
- */
 @Composable
 fun DoctorTagChip(text: String) {
     Box(
@@ -177,9 +165,6 @@ fun DoctorTagChip(text: String) {
     }
 }
 
-/**
- * Section displaying doctor's biography.
- */
 @Composable
 fun DoctorBiographySection(biography: String = DEFAULT_BIOGRAPHY) {
     Column {

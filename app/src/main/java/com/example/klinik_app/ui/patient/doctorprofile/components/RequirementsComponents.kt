@@ -19,9 +19,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.ui.patient.PatientHomeColors
 
-/**
- * Section for entering appointment requirements (symptoms and description).
- */
 @Composable
 fun RequirementsSection(
     symptoms: String,
@@ -38,16 +35,14 @@ fun RequirementsSection(
         )
         
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Symptoms Input
+
         SymptomsInput(
             symptoms = symptoms,
             onSymptomsChange = onSymptomsChange
         )
         
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Description Input
+
         DescriptionInput(
             description = description,
             onDescriptionChange = onDescriptionChange
@@ -55,9 +50,6 @@ fun RequirementsSection(
     }
 }
 
-/**
- * Input field for entering symptoms.
- */
 @Composable
 fun SymptomsInput(
     symptoms: String,
@@ -96,9 +88,6 @@ fun SymptomsInput(
     }
 }
 
-/**
- * Input field for entering detailed description.
- */
 @Composable
 fun DescriptionInput(
     description: String,
@@ -139,9 +128,6 @@ fun DescriptionInput(
     }
 }
 
-/**
- * Primary action button for booking an appointment.
- */
 @Composable
 fun BookAppointmentButton(
     price: String,

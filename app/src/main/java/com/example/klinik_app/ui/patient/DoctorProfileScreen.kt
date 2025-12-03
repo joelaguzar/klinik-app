@@ -35,9 +35,23 @@ import com.example.klinik_app.ui.patient.doctorprofile.components.SchedulesSecti
 import com.example.klinik_app.ui.patient.doctorprofile.models.ScheduleUtils
 import com.example.klinik_app.ui.patient.doctorprofile.models.TimeOfDay
 
-/**
- * Main doctor profile screen displaying doctor information and appointment booking.
- */
+///TODO: FIREBASE - BOOK APPOINTMENT
+/// 1. Implement appointment booking:
+///    - firestore.collection("appointments").add(appointmentData)
+/// 2. AppointmentData structure:
+///    - patientId: currentUserId
+///    - doctorId: doctor.id
+///    - status: AppointmentStatus.PENDING
+///    - symptoms: symptoms
+///    - description: description
+///    - scheduledDate: selected date
+///    - scheduledTime: selected time slot
+///    - createdAt: FieldValue.serverTimestamp()
+///    - updatedAt: FieldValue.serverTimestamp()
+/// 3. Send notification to doctor about new appointment request
+/// 4. Navigate to appointments screen on success
+/// 5. Handle booking conflicts (same time slot)
+
 @Composable
 fun DoctorProfileScreen(
     doctor: Doctor,
@@ -45,22 +59,18 @@ fun DoctorProfileScreen(
     onBookAppointment: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
-    
-    // Schedule state
+
     var selectedDayIndex by remember { mutableIntStateOf(0) }
     var selectedTimeOfDay by remember { mutableStateOf(TimeOfDay.AFTERNOON) }
     var selectedTimeSlotIndex by remember { mutableIntStateOf(0) }
-    
-    // Requirements state
+
     var symptoms by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
-    
-    // Generate schedule days and time slots using utility functions
+
     val scheduleDays = ScheduleUtils.generateScheduleDays(selectedIndex = selectedDayIndex)
     val timeSlots = ScheduleUtils.getTimeSlotsForTimeOfDay(selectedTimeOfDay)
-    
-    // Doctor tags
-    val doctorTags = listOf("Neurolist", "Neuromedicine", "Medicine")
+
+    val doctorTags = if (doctor.tags.isNotEmpty()) doctor.tags else listOf("Specialist", "Consultant")
     
     DoctorProfileContent(
         doctor = doctor,
@@ -83,9 +93,6 @@ fun DoctorProfileScreen(
     )
 }
 
-/**
- * Stateless content composable for the doctor profile screen.
- */
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun DoctorProfileContent(
@@ -113,7 +120,6 @@ private fun DoctorProfileContent(
             .background(PatientHomeColors.White)
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
     ) {
-        // Top Bar
         DoctorProfileTopBar(onBackClick = onBackClick)
         
         Column(
@@ -123,23 +129,19 @@ private fun DoctorProfileContent(
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Doctor Info Section
+
             DoctorInfoSection(doctor = doctor)
             
             Spacer(modifier = Modifier.height(16.dp))
-            
-            // Doctor Tags
+
             DoctorTagsRow(tags = doctorTags)
             
             Spacer(modifier = Modifier.height(24.dp))
-            
-            // Doctor Biography
+
             DoctorBiographySection()
             
             Spacer(modifier = Modifier.height(24.dp))
-            
-            // Schedules Section
+
             SchedulesSection(
                 scheduleDays = scheduleDays,
                 selectedDayIndex = selectedDayIndex,
@@ -158,8 +160,7 @@ private fun DoctorProfileContent(
             )
             
             Spacer(modifier = Modifier.height(24.dp))
-            
-            // Requirements Section
+
             RequirementsSection(
                 symptoms = symptoms,
                 onSymptomsChange = onSymptomsChange,
@@ -168,8 +169,7 @@ private fun DoctorProfileContent(
             )
             
             Spacer(modifier = Modifier.height(32.dp))
-            
-            // Book Appointment Button
+
             BookAppointmentButton(
                 price = "$50.99",
                 onClick = onBookAppointment
@@ -184,6 +184,7 @@ private fun DoctorProfileContent(
 @Composable
 fun PreviewDoctorProfileScreen() {
     val sampleDoctor = Doctor(
+        id = "preview_doctor",
         firstName = "Eion",
         lastName = "Morgan",
         field = "Neurology",
@@ -192,7 +193,9 @@ fun PreviewDoctorProfileScreen() {
         appointments = 2530,
         imageRes = R.drawable.ic_doctor_placeholder,
         sex = "Male",
-        age = 45
+        age = 45,
+        tags = listOf("Brain Specialist", "Migraine Expert", "Neurological Disorders"),
+        description = "Experienced neurologist with over 10 years of practice."
     )
     
     MaterialTheme {

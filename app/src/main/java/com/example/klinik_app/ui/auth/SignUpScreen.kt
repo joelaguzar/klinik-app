@@ -50,6 +50,19 @@ import com.example.klinik_app.KlinikGlassColors
 import com.example.klinik_app.R
 import com.example.klinik_app.SocialIconGlass
 
+///TODO: FIREBASE AUTHENTICATION - SIGN UP
+/// 1. Create SignUpViewModel to handle registration state
+/// 2. Implement Firebase Auth registration:
+///    - auth.createUserWithEmailAndPassword(email, password).await()
+/// 3. After successful auth, create user document in Firestore:
+///    - firestore.collection("users").document(uid).set(mapOf("userType" to userType, "email" to email))
+///    - firestore.collection(if (isPatient) "patients" else "doctors").document(uid).set(userData)
+/// 4. For profile image upload:
+///    - Use Firebase Storage: storage.reference.child("profile_images/$uid.jpg").putFile(imageUri)
+///    - Get download URL and store in user document
+/// 5. Implement email verification: auth.currentUser?.sendEmailVerification()
+/// 6. Handle errors: duplicate email, weak password, network issues
+
 private const val TOTAL_STEPS = 2
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,7 +75,6 @@ fun KlinikSignUpScreen(
     val validator = remember { SignUpValidator(formState) }
     val datePickerState = rememberDatePickerState()
 
-    // Date picker dialog
     if (formState.showDatePicker) {
         DatePickerDialog(
             onDismissRequest = { formState.showDatePicker = false },
@@ -103,7 +115,6 @@ fun KlinikSignUpScreen(
         ) {
             Spacer(modifier = Modifier.height(60.dp))
 
-            // Header with logo and back button
             SignUpHeader(
                 currentStep = formState.currentStep,
                 onBackClick = formState::goToStep1
@@ -111,7 +122,6 @@ fun KlinikSignUpScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Step indicator
             StepIndicator(
                 currentStep = formState.currentStep,
                 totalSteps = TOTAL_STEPS
@@ -119,7 +129,6 @@ fun KlinikSignUpScreen(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Main content card
             GlassCard {
                 SignUpContent(
                     formState = formState,
@@ -127,7 +136,6 @@ fun KlinikSignUpScreen(
                 )
             }
 
-            // Footer (only on step 1)
             if (formState.currentStep == 1) {
                 SignUpFooter(onNavigateToSignIn = onNavigateToSignIn)
             } else {
@@ -222,7 +230,23 @@ private fun Step2Content(
             validator = validator,
             onCreateAccount = {
                 if (validator.validateStep2Patient()) {
-                    // Handle successful patient sign up
+                    ///TODO: Implement Firebase patient registration
+                    /// viewModel.registerPatient(
+                    ///     email = formState.email,
+                    ///     password = formState.password,
+                    ///     patientData = PatientData(
+                    ///         firstName = formState.firstName,
+                    ///         lastName = formState.lastName,
+                    ///         sex = formState.selectedSex,
+                    ///         birthdate = formState.birthdate,
+                    ///         height = formState.height,
+                    ///         weight = formState.weight,
+                    ///         bloodType = formState.bloodType
+                    ///     )
+                    /// ) { result ->
+                    ///     result.onSuccess { onNavigateToSignIn() }
+                    ///     result.onFailure { showError(it.message) }
+                    /// }
                 }
             }
         )
@@ -231,11 +255,30 @@ private fun Step2Content(
             validator = validator,
             onCreateAccount = {
                 if (validator.validateStep2Doctor()) {
-                    // Handle successful doctor sign up
+                    ///TODO: Implement Firebase doctor registration
+                    /// viewModel.registerDoctor(
+                    ///     email = formState.email,
+                    ///     password = formState.password,
+                    ///     doctorData = DoctorData(
+                    ///         firstName = formState.firstName,
+                    ///         lastName = formState.lastName,
+                    ///         sex = formState.selectedSex,
+                    ///         birthdate = formState.birthdate,
+                    ///         title = formState.title,
+                    ///         field = formState.field,
+                    ///         tags = formState.tags.toList(),
+                    ///         description = formState.shortIntroduction,
+                    ///         ratings = 0.0,
+                    ///         totalReviews = 0
+                    ///     )
+                    /// ) { result ->
+                    ///     result.onSuccess { onNavigateToSignIn() }
+                    ///     result.onFailure { showError(it.message) }
+                    /// }
                 }
             }
         )
-        null -> { /* Should not happen */ }
+        null -> { }
     }
 }
 
@@ -243,7 +286,6 @@ private fun Step2Content(
 private fun SignUpFooter(onNavigateToSignIn: () -> Unit) {
     Spacer(modifier = Modifier.height(18.dp))
 
-    // Divider with text
     Row(verticalAlignment = Alignment.CenterVertically) {
         HorizontalDivider(
             modifier = Modifier.width(60.dp),
@@ -263,7 +305,6 @@ private fun SignUpFooter(onNavigateToSignIn: () -> Unit) {
 
     Spacer(modifier = Modifier.height(16.dp))
 
-    // Social login buttons
     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
         SocialIconGlass(iconRes = R.drawable.ic_facebook)
         SocialIconGlass(iconRes = R.drawable.ic_google)
@@ -271,7 +312,6 @@ private fun SignUpFooter(onNavigateToSignIn: () -> Unit) {
 
     Spacer(modifier = Modifier.height(18.dp))
 
-    // Sign in link
     Row(modifier = Modifier.padding(bottom = 20.dp)) {
         Text(
             text = "Already have an account? ",

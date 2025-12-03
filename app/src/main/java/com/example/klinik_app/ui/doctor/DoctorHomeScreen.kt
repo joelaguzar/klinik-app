@@ -1,9 +1,5 @@
-package com.example.klinik_app.ui.patient
+package com.example.klinik_app.ui.doctor
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -21,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,17 +28,16 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.klinik_app.ui.components.GlassBottomNavBar
 import com.example.klinik_app.ui.components.GlassNavItem
 
-///TODO: FIREBASE - PATIENT HOME SCREEN
-/// 1. Create PatientHomeViewModel with Firebase repositories
-/// 2. Observe current patient data from Firestore in real-time:
-///    - firestore.collection("patients").document(currentUserId).snapshots()
-/// 3. Observe doctors list for "Popular Doctors" section:
-///    - firestore.collection("doctors").orderBy("ratings", Query.Direction.DESCENDING).limit(10)
-/// 4. Load patient's profile image from Firebase Storage
-/// 5. Implement pull-to-refresh to reload data
+///TODO: FIREBASE - DOCTOR HOME SCREEN
+/// 1. Create DoctorHomeViewModel with Firebase repositories
+/// 2. Observe current doctor data from Firestore in real-time:
+///    - firestore.collection("doctors").document(currentUserId).snapshots()
+/// 3. Load doctor's profile image from Firebase Storage
+/// 4. Observe pending appointments count for badge display
+/// 5. Implement logout with Firebase.auth.signOut()
 /// 6. Handle offline mode with Firestore persistence
 
-object PatientHomeColors {
+object DoctorHomeColors {
     val Primary = Color(0xFF0A6B5E)
     val PrimaryLight = Color(0xFFE8F5F3)
     val TextDark = Color(0xFF1A1A1A)
@@ -61,11 +55,10 @@ object PatientHomeColors {
 }
 
 @Composable
-fun PatientHomeScreen(
+fun DoctorHomeScreen(
     onLogoutClick: () -> Unit = {}
 ) {
     var selectedNavItem by remember { mutableIntStateOf(0) }
-    var selectedDoctor by remember { mutableStateOf<Doctor?>(null) }
 
     val navItems = listOf(
         GlassNavItem("Home", Icons.Rounded.Home, Icons.Outlined.Home),
@@ -77,73 +70,49 @@ fun PatientHomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(PatientHomeColors.White)
+            .background(DoctorHomeColors.White)
     ) {
-        PatientBackgroundBlobs()
+        DoctorBackgroundBlobs()
 
-        AnimatedContent(
-            targetState = selectedDoctor,
-            transitionSpec = {
-                if (targetState != null) {
-                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
-                } else {
-                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
-                }
-            },
-            label = "DoctorProfileTransition"
-        ) { doctor ->
-            if (doctor != null) {
-                DoctorProfileScreen(
-                    doctor = doctor,
-                    onBackClick = { selectedDoctor = null }
-                )
-            } else {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    when (selectedNavItem) {
-                        0 -> HomeContent(
-                            onDoctorClick = { selectedDoctor = it },
-                            onLogoutClick = onLogoutClick
-                        )
-                        1 -> AppointmentsScreen()
-                        2 -> InboxScreen()
-                        3 -> ProfileScreen()
-                    }
-                }
+        Box(modifier = Modifier.fillMaxSize()) {
+            when (selectedNavItem) {
+                0 -> DoctorDashboardScreen(onLogoutClick = onLogoutClick)
+                1 -> DoctorAppointmentsScreen()
+                2 -> DoctorInboxScreen()
+                3 -> DoctorProfileScreen()
             }
         }
-
-        if (selectedDoctor == null) {
-            GlassBottomNavBar(
-                items = navItems,
-                selectedIndex = selectedNavItem,
-                onItemSelected = { selectedNavItem = it },
-                onFabClick = { },
-                modifier = Modifier.align(Alignment.BottomCenter)
-            )
-        }
+        
+        GlassBottomNavBar(
+            items = navItems,
+            selectedIndex = selectedNavItem,
+            onItemSelected = { selectedNavItem = it },
+            onFabClick = { },
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
 @Composable
-fun PatientBackgroundBlobs() {
+fun DoctorBackgroundBlobs() {
     Canvas(modifier = Modifier.fillMaxSize()) {
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(PatientHomeColors.Cyan.copy(alpha = 0.4f), Color.Transparent),
+                colors = listOf(DoctorHomeColors.Cyan.copy(alpha = 0.4f), Color.Transparent),
                 center = Offset(0f, 0f), radius = 900f
             ),
             center = Offset(0f, 0f), radius = 900f
         )
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(PatientHomeColors.Blue.copy(alpha = 0.3f), Color.Transparent),
+                colors = listOf(DoctorHomeColors.Blue.copy(alpha = 0.3f), Color.Transparent),
                 center = Offset(size.width, size.height * 0.4f), radius = 700f
             ),
             center = Offset(size.width, size.height * 0.4f), radius = 700f
         )
         drawCircle(
             brush = Brush.radialGradient(
-                colors = listOf(PatientHomeColors.Purple.copy(alpha = 0.2f), Color.Transparent),
+                colors = listOf(DoctorHomeColors.Purple.copy(alpha = 0.2f), Color.Transparent),
                 center = Offset(0f, size.height), radius = 800f
             ),
             center = Offset(0f, size.height), radius = 800f
@@ -153,8 +122,8 @@ fun PatientBackgroundBlobs() {
 
 @Preview(showBackground = true, heightDp = 800)
 @Composable
-fun PreviewPatientHomeScreen() {
+fun PreviewDoctorHomeScreen() {
     MaterialTheme {
-        PatientHomeScreen()
+        DoctorHomeScreen()
     }
 }
