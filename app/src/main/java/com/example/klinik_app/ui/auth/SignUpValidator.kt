@@ -2,9 +2,6 @@ package com.example.klinik_app.ui.auth
 
 import android.util.Patterns
 
-/**
- * Handles all validation logic for the sign-up form
- */
 class SignUpValidator(private val state: SignUpFormState) {
 
     fun validateFirstName(): Boolean {
@@ -62,6 +59,15 @@ class SignUpValidator(private val state: SignUpFormState) {
         return state.userTypeError == null
     }
 
+    fun validateTerms(): Boolean {
+        state.termsError = if (!state.termsAccepted) "You must accept the Terms and Privacy Policy" else null
+        return state.termsError == null
+    }
+
+    fun clearTermsError() {
+        state.termsError = null
+    }
+
     fun validateStep1(): Boolean {
         val results = listOf(
             validateFirstName(),
@@ -69,7 +75,8 @@ class SignUpValidator(private val state: SignUpFormState) {
             validateEmail(),
             validatePassword(),
             validateConfirmPassword(),
-            validateUserType()
+            validateUserType(),
+            validateTerms()
         )
         return results.all { it }
     }
@@ -83,8 +90,6 @@ class SignUpValidator(private val state: SignUpFormState) {
         state.birthdateError = if (state.birthdate == null) "Please select your birthdate" else null
         return state.birthdateError == null
     }
-
-    // ==================== Step 2 Patient Validations ====================
 
     fun validateHeight(): Boolean {
         state.heightError = when {

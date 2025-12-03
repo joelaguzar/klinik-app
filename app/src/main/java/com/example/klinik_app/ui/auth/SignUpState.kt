@@ -40,9 +40,11 @@ class SignUpFormState {
     var password by mutableStateOf("")
     var confirmPassword by mutableStateOf("")
     var selectedUserType by mutableStateOf<UserType?>(null)
+    var termsAccepted by mutableStateOf(false)
 
     var isPasswordVisible by mutableStateOf(false)
     var isConfirmPasswordVisible by mutableStateOf(false)
+    var showPasswordRequirements by mutableStateOf(false)
 
     var selectedSex by mutableStateOf<Sex?>(null)
     var birthdate by mutableStateOf<Long?>(null)
@@ -65,6 +67,7 @@ class SignUpFormState {
     var passwordError by mutableStateOf<String?>(null)
     var confirmPasswordError by mutableStateOf<String?>(null)
     var userTypeError by mutableStateOf<String?>(null)
+    var termsError by mutableStateOf<String?>(null)
 
     var sexError by mutableStateOf<String?>(null)
     var birthdateError by mutableStateOf<String?>(null)
@@ -101,5 +104,9 @@ class SignUpFormState {
 
     fun toggleConfirmPasswordVisibility() {
         isConfirmPasswordVisible = !isConfirmPasswordVisible
+    }
+
+    fun togglePasswordRequirements() {
+        showPasswordRequirements = !showPasswordRequirements
     }
 }

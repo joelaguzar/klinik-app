@@ -51,6 +51,9 @@ fun SignUpStep1Content(
             subtitle = "Join us and take control of your health."
         )
 
+        // Personalized welcome message
+        WelcomePersonalization(firstName = state.firstName)
+
         // User type selection
         SectionLabel(text = "I am a")
 
@@ -125,20 +128,31 @@ fun SignUpStep1Content(
 
         FieldSpacer()
 
-        SignUpTextField(
-            value = state.password,
-            onValueChange = {
-                state.password = it
-                if (state.passwordError != null) validator.validatePassword()
-                if (state.confirmPassword.isNotEmpty()) validator.validateConfirmPassword()
-            },
-            placeholder = "Password",
-            icon = Icons.Default.Lock,
-            isPassword = true,
-            isVisible = state.isPasswordVisible,
-            onToggleVisibility = state::togglePasswordVisibility,
-            errorMessage = state.passwordError
-        )
+        // Password field with strength indicator
+        Column(modifier = Modifier.fillMaxWidth()) {
+            SignUpTextField(
+                value = state.password,
+                onValueChange = {
+                    state.password = it
+                    if (state.passwordError != null) validator.validatePassword()
+                    if (state.confirmPassword.isNotEmpty()) validator.validateConfirmPassword()
+                },
+                placeholder = "Password",
+                icon = Icons.Default.Lock,
+                isPassword = true,
+                isVisible = state.isPasswordVisible,
+                onToggleVisibility = state::togglePasswordVisibility,
+                errorMessage = state.passwordError
+            )
+            
+            // Password strength indicator
+            PasswordStrengthIndicator(password = state.password)
+            
+            // Password requirements hint
+            if (state.password.isNotEmpty()) {
+                PasswordRequirementsHint(password = state.password)
+            }
+        }
 
         FieldSpacer()
 
@@ -156,7 +170,19 @@ fun SignUpStep1Content(
             errorMessage = state.confirmPasswordError
         )
 
-        Spacer(modifier = Modifier.height(32.dp))
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Terms and Conditions
+        TermsAndConditionsCheckbox(
+            isChecked = state.termsAccepted,
+            onCheckedChange = { 
+                state.termsAccepted = it
+                if (it) validator.clearTermsError()
+            },
+            errorMessage = state.termsError
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
 
         GradientButton(
             text = "Continue",

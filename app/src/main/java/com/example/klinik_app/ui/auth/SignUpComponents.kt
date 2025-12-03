@@ -1,10 +1,13 @@
 package com.example.klinik_app.ui.auth
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.animateContentSize
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,15 +28,20 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -48,12 +56,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.KlinikGlassColors
@@ -62,6 +74,8 @@ import java.util.Date
 import java.util.Locale
 
 private val ErrorColor = Color(0xFFDC2626)
+private val SuccessColor = Color(0xFF16A34A)
+private val WarningColor = Color(0xFFF59E0B)
 
 @Composable
 fun StepIndicator(
@@ -69,44 +83,83 @@ fun StepIndicator(
     totalSteps: Int,
     modifier: Modifier = Modifier
 ) {
-    Row(
+    Column(
         modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        for (step in 1..totalSteps) {
-            val isActive = step <= currentStep
-            val backgroundColor by animateColorAsState(
-                targetValue = if (isActive) KlinikGlassColors.Blue else Color.LightGray.copy(alpha = 0.5f),
-                animationSpec = tween(durationMillis = 300),
-                label = "stepColor"
-            )
-
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(backgroundColor),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = step.toString(),
-                    color = if (isActive) Color.White else KlinikGlassColors.TextGray,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold
+        // Progress text
+        Text(
+            text = "Step $currentStep of $totalSteps",
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Medium,
+            color = KlinikGlassColors.TextGray,
+            modifier = Modifier.padding(bottom = 12.dp)
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            for (step in 1..totalSteps) {
+                val isActive = step <= currentStep
+                val isCompleted = step < currentStep
+                val backgroundColor by animateColorAsState(
+                    targetValue = if (isActive) KlinikGlassColors.Blue else Color.LightGray.copy(alpha = 0.5f),
+                    animationSpec = tween(durationMillis = 300),
+                    label = "stepColor"
                 )
-            }
 
-            if (step < totalSteps) {
                 Box(
                     modifier = Modifier
-                        .width(60.dp)
-                        .height(3.dp)
-                        .background(
-                            if (currentStep > step) KlinikGlassColors.Blue
-                            else Color.LightGray.copy(alpha = 0.5f)
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(backgroundColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isCompleted) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Completed",
+                            tint = Color.White,
+                            modifier = Modifier.size(20.dp)
                         )
-                )
+                    } else {
+                        Text(
+                            text = step.toString(),
+                            color = if (isActive) Color.White else KlinikGlassColors.TextGray,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
+
+                if (step < totalSteps) {
+                    val lineProgress by animateFloatAsState(
+                        targetValue = if (currentStep > step) 1f else 0f,
+                        animationSpec = tween(durationMillis = 400),
+                        label = "lineProgress"
+                    )
+                    
+                    Box(
+                        modifier = Modifier
+                            .width(80.dp)
+                            .height(4.dp)
+                            .clip(RoundedCornerShape(2.dp))
+                            .background(Color.LightGray.copy(alpha = 0.3f))
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(lineProgress)
+                                .height(4.dp)
+                                .background(
+                                    Brush.horizontalGradient(
+                                        colors = listOf(KlinikGlassColors.Cyan, KlinikGlassColors.Blue)
+                                    )
+                                )
+                        )
+                    }
+                }
             }
         }
     }
@@ -145,6 +198,215 @@ fun GradientButton(
                 color = Color.White
             )
         }
+    }
+}
+
+// Password strength calculation
+enum class PasswordStrength(val label: String, val color: Color, val progress: Float) {
+    WEAK("Weak", Color(0xFFDC2626), 0.25f),
+    FAIR("Fair", Color(0xFFF59E0B), 0.5f),
+    GOOD("Good", Color(0xFF3B82F6), 0.75f),
+    STRONG("Strong", Color(0xFF16A34A), 1f)
+}
+
+fun calculatePasswordStrength(password: String): PasswordStrength {
+    if (password.isEmpty()) return PasswordStrength.WEAK
+    
+    var score = 0
+    if (password.length >= 8) score++
+    if (password.any { it.isUpperCase() }) score++
+    if (password.any { it.isLowerCase() }) score++
+    if (password.any { it.isDigit() }) score++
+    if (password.any { !it.isLetterOrDigit() }) score++
+    if (password.length >= 12) score++
+    
+    return when {
+        score <= 2 -> PasswordStrength.WEAK
+        score <= 3 -> PasswordStrength.FAIR
+        score <= 4 -> PasswordStrength.GOOD
+        else -> PasswordStrength.STRONG
+    }
+}
+
+@Composable
+fun PasswordStrengthIndicator(
+    password: String,
+    modifier: Modifier = Modifier
+) {
+    if (password.isEmpty()) return
+    
+    val strength = calculatePasswordStrength(password)
+    val animatedProgress by animateFloatAsState(
+        targetValue = strength.progress,
+        animationSpec = tween(durationMillis = 300),
+        label = "strengthProgress"
+    )
+    val animatedColor by animateColorAsState(
+        targetValue = strength.color,
+        animationSpec = tween(durationMillis = 300),
+        label = "strengthColor"
+    )
+    
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp)
+            .animateContentSize()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = "Password strength",
+                fontSize = 12.sp,
+                color = KlinikGlassColors.TextGray
+            )
+            Text(
+                text = strength.label,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = animatedColor
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(6.dp))
+        
+        LinearProgressIndicator(
+            progress = { animatedProgress },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(6.dp)
+                .clip(RoundedCornerShape(3.dp)),
+            color = animatedColor,
+            trackColor = Color.LightGray.copy(alpha = 0.3f),
+            strokeCap = StrokeCap.Round
+        )
+    }
+}
+
+@Composable
+fun PasswordRequirementsHint(
+    password: String,
+    modifier: Modifier = Modifier
+) {
+    val requirements = listOf(
+        "At least 8 characters" to (password.length >= 8),
+        "One uppercase letter" to password.any { it.isUpperCase() },
+        "One lowercase letter" to password.any { it.isLowerCase() },
+        "One number" to password.any { it.isDigit() }
+    )
+    
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp, start = 4.dp)
+            .animateContentSize()
+    ) {
+        requirements.forEach { (text, isMet) ->
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(vertical = 2.dp)
+            ) {
+                val iconColor by animateColorAsState(
+                    targetValue = if (isMet) SuccessColor else KlinikGlassColors.TextGray.copy(alpha = 0.5f),
+                    animationSpec = tween(200),
+                    label = "reqIconColor"
+                )
+                Icon(
+                    imageVector = if (isMet) Icons.Default.Check else Icons.Default.Info,
+                    contentDescription = null,
+                    tint = iconColor,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = text,
+                    fontSize = 11.sp,
+                    color = if (isMet) KlinikGlassColors.TextDark else KlinikGlassColors.TextGray.copy(alpha = 0.7f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun TermsAndConditionsCheckbox(
+    isChecked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier,
+    errorMessage: String? = null
+) {
+    Column(modifier = modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null
+                ) { onCheckedChange(!isChecked) },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = isChecked,
+                onCheckedChange = onCheckedChange,
+                colors = CheckboxDefaults.colors(
+                    checkedColor = KlinikGlassColors.Blue,
+                    uncheckedColor = if (errorMessage != null) ErrorColor else KlinikGlassColors.TextGray,
+                    checkmarkColor = Color.White
+                )
+            )
+            
+            Text(
+                text = buildAnnotatedString {
+                    append("I agree to the ")
+                    withStyle(SpanStyle(color = KlinikGlassColors.Blue, fontWeight = FontWeight.SemiBold)) {
+                        append("Terms of Service")
+                    }
+                    append(" and ")
+                    withStyle(SpanStyle(color = KlinikGlassColors.Blue, fontWeight = FontWeight.SemiBold)) {
+                        append("Privacy Policy")
+                    }
+                },
+                fontSize = 13.sp,
+                color = KlinikGlassColors.TextGray,
+                modifier = Modifier.padding(start = 4.dp)
+            )
+        }
+        
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = ErrorColor,
+                fontSize = 12.sp,
+                modifier = Modifier.padding(start = 48.dp, top = 2.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun WelcomePersonalization(
+    firstName: String,
+    modifier: Modifier = Modifier
+) {
+    if (firstName.isNotBlank()) {
+        Text(
+            text = buildAnnotatedString {
+                append("Welcome, ")
+                withStyle(SpanStyle(color = KlinikGlassColors.Blue, fontWeight = FontWeight.Bold)) {
+                    append(firstName.trim().replaceFirstChar { it.uppercase() })
+                }
+                append("! 👋")
+            },
+            fontSize = 14.sp,
+            color = KlinikGlassColors.TextGray,
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(bottom = 8.dp)
+                .animateContentSize()
+        )
     }
 }
 

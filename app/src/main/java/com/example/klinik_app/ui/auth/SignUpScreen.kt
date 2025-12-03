@@ -149,11 +149,13 @@ private fun SignUpHeader(
         if (currentStep == 2) {
             IconButton(
                 onClick = onBackClick,
-                modifier = Modifier.align(Alignment.CenterStart)
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .size(40.dp)
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
+                    contentDescription = "Back to previous step",
                     tint = KlinikGlassColors.TextDark
                 )
             }
@@ -161,7 +163,7 @@ private fun SignUpHeader(
 
         Image(
             painter = painterResource(id = R.drawable.klinik_logo),
-            contentDescription = "Logo",
+            contentDescription = "Klinik Logo",
             modifier = Modifier.size(80.dp)
         )
     }
