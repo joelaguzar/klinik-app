@@ -1,5 +1,7 @@
 package com.example.klinik_app.ui.patient
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -84,6 +86,7 @@ fun DoctorProfileScreen(
 /**
  * Stateless content composable for the doctor profile screen.
  */
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 private fun DoctorProfileContent(
     doctor: Doctor,
