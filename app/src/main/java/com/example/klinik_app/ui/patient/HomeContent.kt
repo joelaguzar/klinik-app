@@ -25,17 +25,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,10 +50,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
+import kotlinx.coroutines.launch
 
 data class DoctorCategory(
     val name: String,
@@ -56,17 +64,64 @@ data class DoctorCategory(
 )
 
 data class Doctor(
-    val name: String,
-    val specialty: String,
+    val firstName: String,
+    val lastName: String,
+    val field: String,
+    val position: String,
     val rating: Double,
-    val reviews: Int,
-    val fee: String,
-    val imageRes: Int
+    val appointments: Int,
+    val imageRes: Int,
+    val sex: String = "Female",
+    val age: Int = 35
+) {
+    val fullName: String get() = "$firstName $lastName"
+}
+
+data class PatientInfo(
+    val age: Int,
+    val height: String,
+    val weight: String,
+    val bloodType: String
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeContent() {
+fun HomeContent(
+    onDoctorClick: (Doctor) -> Unit = {},
+    onLogoutClick: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
+    val sheetState = rememberModalBottomSheetState()
+    val scope = rememberCoroutineScope()
+    var showBottomSheet by remember { mutableStateOf(false) }
+    
+    // Sample patient info - in real app this would come from a ViewModel/repository
+    val patientInfo = PatientInfo(
+        age = 28,
+        height = "175 cm",
+        weight = "70 kg",
+        bloodType = "O+"
+    )
+
+    // SDG Bottom Sheet
+    if (showBottomSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showBottomSheet = false },
+            sheetState = sheetState,
+            containerColor = PatientHomeColors.White,
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        ) {
+            SDGBottomSheetContent(
+                onDismiss = {
+                    scope.launch { sheetState.hide() }.invokeOnCompletion {
+                        if (!sheetState.isVisible) {
+                            showBottomSheet = false
+                        }
+                    }
+                }
+            )
+        }
+    }
     
     Column(
         modifier = Modifier
@@ -75,11 +130,15 @@ fun HomeContent() {
             .verticalScroll(scrollState)
     ) {
         // header
-        HeaderSection()
+        HeaderSection(onLogoutClick = onLogoutClick)
+        
+        // Patient Info Section
+        PatientInfoSection(patientInfo = patientInfo)
+        
         Spacer(modifier = Modifier.height(24.dp))
 
         // search
-        SearchBanner()
+        SearchBanner(onSDGClick = { showBottomSheet = true })
         Spacer(modifier = Modifier.height(24.dp))
 
         // sdg card
@@ -87,7 +146,7 @@ fun HomeContent() {
         Spacer(modifier = Modifier.height(24.dp))
 
         // doctor cards
-        PopularDoctorsSection()
+        PopularDoctorsSection(onDoctorClick = onDoctorClick)
 
         // Bottom spacing for navbar
         Spacer(modifier = Modifier.height(120.dp))
@@ -95,7 +154,7 @@ fun HomeContent() {
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(onLogoutClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -139,47 +198,102 @@ fun HeaderSection() {
             }
         }
 
-        // Action Icons
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Search Icon
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .border(1.dp, Color(0xFFE5E7EB), CircleShape)
-                    .clip(CircleShape)
-                    .clickable { },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = PatientHomeColors.TextDark,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            // Notification Icon
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .border(1.dp, Color(0xFFE5E7EB), CircleShape)
-                    .clip(CircleShape)
-                    .clickable { },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Notifications,
-                    contentDescription = "Notifications",
-                    tint = PatientHomeColors.TextDark,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+        // Logout Button
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier.height(40.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFE53935)
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+        ) {
+            Text(
+                text = "Logout",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
         }
     }
 }
 
 @Composable
-fun SearchBanner() {
+fun PatientInfoSection(patientInfo: PatientInfo) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        PatientInfoItem(
+            iconRes = R.drawable.ic_age,
+            label = "Age",
+            value = "${patientInfo.age} yrs",
+            backgroundColor = Color(0xFFE3F2FD)
+        )
+        PatientInfoItem(
+            iconRes = R.drawable.ic_height,
+            label = "Height",
+            value = patientInfo.height,
+            backgroundColor = Color(0xFFFCE4EC)
+        )
+        PatientInfoItem(
+            iconRes = R.drawable.ic_weight,
+            label = "Weight",
+            value = patientInfo.weight,
+            backgroundColor = Color(0xFFF3E5F5)
+        )
+        PatientInfoItem(
+            iconRes = R.drawable.ic_blood,
+            label = "Blood",
+            value = patientInfo.bloodType,
+            backgroundColor = Color(0xFFFFEBEE)
+        )
+    }
+}
+
+@Composable
+fun PatientInfoItem(
+    iconRes: Int,
+    label: String,
+    value: String,
+    backgroundColor: Color
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Box(
+            modifier = Modifier
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(backgroundColor),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = iconRes),
+                contentDescription = label,
+                modifier = Modifier.size(32.dp)
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = label,
+            fontSize = 11.sp,
+            color = PatientHomeColors.TextGray,
+            fontWeight = FontWeight.Normal
+        )
+        Text(
+            text = value,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = PatientHomeColors.TextDark
+        )
+    }
+}
+
+@Composable
+fun SearchBanner(onSDGClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -222,7 +336,7 @@ fun SearchBanner() {
 
                 // SDG Button
                 Button(
-                    onClick = { },
+                    onClick = onSDGClick,
                     modifier = Modifier.height(36.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -337,23 +451,29 @@ fun DoctorCategoryItem(category: DoctorCategory) {
 }
 
 @Composable
-fun PopularDoctorsSection() {
+fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
     val doctors = listOf(
         Doctor(
-            name = "Chloe Kelly",
-            specialty = "M.Ch (Neuro)",
+            firstName = "Chloe",
+            lastName = "Kelly",
+            field = "Neurology",
+            position = "Senior Consultant",
             rating = 4.5,
-            reviews = 2530,
-            fee = "$50.99",
-            imageRes = R.drawable.ic_doctor_placeholder
+            appointments = 2530,
+            imageRes = R.drawable.ic_doctor_placeholder,
+            sex = "Female",
+            age = 38
         ),
         Doctor(
-            name = "Lauren Hemp",
-            specialty = "Spinal Surgery",
+            firstName = "Lauren",
+            lastName = "Hemp",
+            field = "Spinal Surgery",
+            position = "Chief Surgeon",
             rating = 4.5,
-            reviews = 2530,
-            fee = "$50.99",
-            imageRes = R.drawable.ic_doctor_placeholder
+            appointments = 2530,
+            imageRes = R.drawable.ic_doctor_placeholder,
+            sex = "Female",
+            age = 42
         )
     )
 
@@ -383,18 +503,18 @@ fun PopularDoctorsSection() {
 
         // Doctor Cards
         doctors.forEach { doctor ->
-            DoctorCard(doctor = doctor)
+            DoctorCard(doctor = doctor, onViewDetailsClick = { onDoctorClick(doctor) })
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
 
 @Composable
-fun DoctorCard(doctor: Doctor) {
+fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { },
+            .clickable { onViewDetailsClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = PatientHomeColors.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -414,7 +534,7 @@ fun DoctorCard(doctor: Doctor) {
             ) {
                 Image(
                     painter = painterResource(id = doctor.imageRes),
-                    contentDescription = doctor.name,
+                    contentDescription = doctor.fullName,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -425,16 +545,23 @@ fun DoctorCard(doctor: Doctor) {
             // Doctor Info
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = doctor.name,
+                    text = doctor.fullName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = PatientHomeColors.TextDark
                 )
 
                 Text(
-                    text = doctor.specialty,
+                    text = doctor.field,
                     fontSize = 13.sp,
                     color = PatientHomeColors.TextGray,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+
+                Text(
+                    text = doctor.position,
+                    fontSize = 12.sp,
+                    color = PatientHomeColors.TextLightGray,
                     modifier = Modifier.padding(top = 2.dp)
                 )
 
@@ -451,33 +578,20 @@ fun DoctorCard(doctor: Doctor) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${doctor.rating} (${doctor.reviews})",
+                        text = "${doctor.rating} (${doctor.appointments})",
                         fontSize = 12.sp,
                         color = PatientHomeColors.TextGray
                     )
                 }
             }
 
-            // Fee and Book Button
+            // View Details Button
             Column(
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Fees",
-                    fontSize = 11.sp,
-                    color = PatientHomeColors.TextLightGray
-                )
-                Text(
-                    text = doctor.fee,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PatientHomeColors.TextDark
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
                 Button(
-                    onClick = { },
+                    onClick = onViewDetailsClick,
                     modifier = Modifier.height(32.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -486,7 +600,7 @@ fun DoctorCard(doctor: Doctor) {
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
                 ) {
                     Text(
-                        text = "Book Now",
+                        text = "View Details",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = PatientHomeColors.White
@@ -494,6 +608,151 @@ fun DoctorCard(doctor: Doctor) {
                 }
             }
         }
+    }
+}
+
+@Composable
+fun SDGBottomSheetContent(onDismiss: () -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Handle bar indicator
+        Box(
+            modifier = Modifier
+                .width(40.dp)
+                .height(4.dp)
+                .clip(RoundedCornerShape(2.dp))
+                .background(Color(0xFFE0E0E0))
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.klinik_logo),
+                contentDescription = "App Logo",
+                modifier = Modifier.size(70.dp),
+                contentScale = ContentScale.Fit
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "Klinik",
+                fontSize = 32.sp,
+                fontWeight = FontWeight.Bold,
+                color = PatientHomeColors.TextDark
+            )
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        // Title
+        Text(
+            text = "SDG 3: Good Health and Well-Being",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = PatientHomeColors.TextDark,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Subtitle
+        Text(
+            text = "Ensure healthy lives and promote well-being for all at all ages",
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Medium,
+            color = PatientHomeColors.Primary,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        // Description
+        Text(
+            text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            fontSize = 14.sp,
+            color = PatientHomeColors.TextGray,
+            textAlign = TextAlign.Start,
+            lineHeight = 22.sp
+        )
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Key Targets Section
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Text(
+                    text = "Key Targets",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = PatientHomeColors.TextDark
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                SDGTargetItem(text = "Reduce maternal mortality")
+                SDGTargetItem(text = "End preventable deaths of newborns and children")
+                SDGTargetItem(text = "Fight communicable diseases")
+                SDGTargetItem(text = "Ensure universal access to healthcare services")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Learn More Button
+        Button(
+            onClick = onDismiss,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(50.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = PatientHomeColors.Primary
+            )
+        ) {
+            Text(
+                text = "Got It",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun SDGTargetItem(text: String) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(PatientHomeColors.Primary)
+        )
+        Spacer(modifier = Modifier.width(12.dp))
+        Text(
+            text = text,
+            fontSize = 13.sp,
+            color = PatientHomeColors.TextGray
+        )
     }
 }
 
