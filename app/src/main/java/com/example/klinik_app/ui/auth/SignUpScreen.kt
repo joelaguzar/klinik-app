@@ -49,6 +49,8 @@ import com.example.klinik_app.GlassCard
 import com.example.klinik_app.KlinikGlassColors
 import com.example.klinik_app.R
 import com.example.klinik_app.SocialIconGlass
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 ///TODO: FIREBASE AUTHENTICATION - SIGN UP
 /// 1. Create SignUpViewModel to handle registration state
@@ -229,8 +231,12 @@ private fun Step2Content(
             state = formState,
             validator = validator,
             onCreateAccount = {
+
+                val auth = FirebaseAuth.getInstance();
+                val firestore = FirebaseFirestore.getInstance();
+
                 if (validator.validateStep2Patient()) {
-                    ///TODO: Implement Firebase patient registration
+                    /// TODO: Implement Firebase patient registration
                     /// viewModel.registerPatient(
                     ///     email = formState.email,
                     ///     password = formState.password,
@@ -247,6 +253,35 @@ private fun Step2Content(
                     ///     result.onSuccess { onNavigateToSignIn() }
                     ///     result.onFailure { showError(it.message) }
                     /// }
+
+                    val patientMap = hashMapOf(
+                        "email" to formState.email,
+                        "firstName" to formState.firstName,
+                        "lastName" to formState.lastName,
+                        "sex" to formState.selectedSex,
+                        "birthdate" to formState.birthdate,
+                        "height" to formState.height,
+                        "weight" to formState.weight,
+                        "bloodType" to formState.bloodType
+                    )
+
+
+                    auth.createUserWithEmailAndPassword(formState.email, formState.password)
+                        .addOnSuccessListener { task ->
+                            val id = task.user?.uid.toString();
+                            firestore.collection("patients")
+                                .document(id)
+                                .set(patientMap)
+
+                            // TODO: add snack bar indicator
+                            // onNavigateToSignIn();
+                        }
+                        .addOnFailureListener {
+
+                            // Show snack bar: Sign up failed. Error code: [error]
+                        }
+
+
                 }
             }
         )
@@ -255,7 +290,7 @@ private fun Step2Content(
             validator = validator,
             onCreateAccount = {
                 if (validator.validateStep2Doctor()) {
-                    ///TODO: Implement Firebase doctor registration
+                    /// TODO: Implement Firebase doctor registration
                     /// viewModel.registerDoctor(
                     ///     email = formState.email,
                     ///     password = formState.password,
@@ -275,6 +310,38 @@ private fun Step2Content(
                     ///     result.onSuccess { onNavigateToSignIn() }
                     ///     result.onFailure { showError(it.message) }
                     /// }
+
+                    val auth = FirebaseAuth.getInstance();
+                    val firestore = FirebaseFirestore.getInstance();
+
+                    val doctorMap = hashMapOf(
+                        "email" to formState.email,
+                        "firstName" to formState.firstName,
+                        "lastName" to formState.lastName,
+                        "sex" to formState.selectedSex,
+                        "birthdate" to formState.birthdate,
+                        "title" to formState.title,
+                        "field" to formState.field,
+                        "tags" to formState.tags.toList(),
+                        "description" to formState.shortIntroduction,
+                        "ratings" to 0.0,
+                        "totalReviews" to 0
+                    )
+
+                    auth.createUserWithEmailAndPassword(formState.email, formState.password)
+                        .addOnSuccessListener { task ->
+                            val id = task.user?.uid.toString();
+
+                            firestore.collection("doctors")
+                                .document(id)
+                                .set(doctorMap);
+
+                            // TODO: add snack bar impl.
+                        }
+
+                        .addOnFailureListener {
+                            // TODO: add snack bar impl.
+                        }
                 }
             }
         )
