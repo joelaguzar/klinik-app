@@ -51,7 +51,9 @@ object PatientHomeColors {
 }
 
 @Composable
-fun PatientHomeScreen() {
+fun PatientHomeScreen(
+    onLogoutClick: () -> Unit = {}
+) {
     var selectedNavItem by remember { mutableIntStateOf(0) }
     var selectedDoctor by remember { mutableStateOf<Doctor?>(null) }
     
@@ -90,7 +92,10 @@ fun PatientHomeScreen() {
             } else {
                 Box(modifier = Modifier.fillMaxSize()) {
                     when (selectedNavItem) {
-                        0 -> HomeContent(onDoctorClick = { selectedDoctor = it })
+                        0 -> HomeContent(
+                            onDoctorClick = { selectedDoctor = it },
+                            onLogoutClick = onLogoutClick
+                        )
                         1 -> AppointmentsScreen()
                         2 -> InboxScreen()
                         3 -> ProfileScreen()

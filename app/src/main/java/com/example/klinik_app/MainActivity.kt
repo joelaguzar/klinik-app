@@ -49,6 +49,8 @@ fun AppNavigation() {
         AppScreen.SignUp -> KlinikSignUpScreen(
             onNavigateToSignIn = { currentScreen = AppScreen.SignIn }
         )
-        AppScreen.PatientHome -> PatientHomeScreen()
+        AppScreen.PatientHome -> PatientHomeScreen(
+            onLogoutClick = { currentScreen = AppScreen.SignIn }
+        )
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,11 +52,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.klinik_app.R
 
 /**
  * Modern glassmorphism color scheme for bottom navigation
@@ -410,12 +414,11 @@ fun GlassNavItemComponent(
 }
 
 /**
- * Frosted glass floating action button with Klinik cyan-blue gradient
+ * Frosted glass floating action button with Klinik logo
  */
 @Composable
 fun FrostedGlassFab(
     onClick: () -> Unit,
-    icon: ImageVector,
     modifier: Modifier = Modifier,
     size: Dp = NavBarDimensions.FabSize
 ) {
@@ -445,23 +448,23 @@ fun FrostedGlassFab(
                 )
         )
         
-        // Main FAB with cyan-blue gradient (matching your app)
+        // Main FAB with white/gray background for logo visibility
         Box(
             modifier = Modifier
                 .size(size)
                 .shadow(
                     elevation = 12.dp,
                     shape = CircleShape,
-                    ambientColor = GlassNavColors.Cyan.copy(alpha = 0.3f),
-                    spotColor = GlassNavColors.Blue.copy(alpha = 0.4f)
+                    ambientColor = Color(0x20000000),
+                    spotColor = Color(0x30000000)
                 )
                 .clip(CircleShape)
                 .background(
                     Brush.linearGradient(
                         colors = listOf(
-                            GlassNavColors.FabGradientStart, // Cyan
-                            GlassNavColors.FabGradientMiddle,
-                            GlassNavColors.FabGradientEnd // Blue
+                            Color(0xFFFFFFFF), // White
+                            Color(0xFFF8F9FA), // Very light gray
+                            Color(0xFFF1F3F5)  // Light gray
                         ),
                         start = Offset(0f, 0f),
                         end = Offset(size.value * 2, size.value * 2)
@@ -502,14 +505,27 @@ fun FrostedGlassFab(
                     )
             )
             
-            Icon(
-                imageVector = icon,
-                contentDescription = "Action",
-                tint = Color.White,
-                modifier = Modifier.size(NavBarDimensions.FabIconSize)
+            Image(
+                painter = painterResource(id = R.drawable.klinik_logo),
+                contentDescription = "Klinik Logo",
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(NavBarDimensions.FabIconSize + 8.dp)
             )
         }
     }
+}
+
+/**
+ * Overloaded FrostedGlassFab that accepts an icon parameter for backward compatibility
+ */
+@Composable
+fun FrostedGlassFab(
+    onClick: () -> Unit,
+    icon: ImageVector,
+    modifier: Modifier = Modifier,
+    size: Dp = NavBarDimensions.FabSize
+) {
+    FrostedGlassFab(onClick = onClick, modifier = modifier, size = size)
 }
 
 /**
