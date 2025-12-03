@@ -25,9 +25,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,13 +64,18 @@ data class DoctorCategory(
 )
 
 data class Doctor(
-    val name: String,
-    val specialty: String,
+    val firstName: String,
+    val lastName: String,
+    val field: String,
+    val position: String,
     val rating: Double,
-    val reviews: Int,
-    val fee: String,
-    val imageRes: Int
-)
+    val appointments: Int,
+    val imageRes: Int,
+    val sex: String = "Female",
+    val age: Int = 35
+) {
+    val fullName: String get() = "$firstName $lastName"
+}
 
 data class PatientInfo(
     val age: Int,
@@ -83,7 +86,10 @@ data class PatientInfo(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeContent() {
+fun HomeContent(
+    onDoctorClick: (Doctor) -> Unit = {},
+    onLogoutClick: () -> Unit = {}
+) {
     val scrollState = rememberScrollState()
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
@@ -124,7 +130,7 @@ fun HomeContent() {
             .verticalScroll(scrollState)
     ) {
         // header
-        HeaderSection()
+        HeaderSection(onLogoutClick = onLogoutClick)
         
         // Patient Info Section
         PatientInfoSection(patientInfo = patientInfo)
@@ -140,7 +146,7 @@ fun HomeContent() {
         Spacer(modifier = Modifier.height(24.dp))
 
         // doctor cards
-        PopularDoctorsSection()
+        PopularDoctorsSection(onDoctorClick = onDoctorClick)
 
         // Bottom spacing for navbar
         Spacer(modifier = Modifier.height(120.dp))
@@ -148,7 +154,7 @@ fun HomeContent() {
 }
 
 @Composable
-fun HeaderSection() {
+fun HeaderSection(onLogoutClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -192,41 +198,22 @@ fun HeaderSection() {
             }
         }
 
-        // Action Icons
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            // Search Icon
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .border(1.dp, Color(0xFFE5E7EB), CircleShape)
-                    .clip(CircleShape)
-                    .clickable { },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search",
-                    tint = PatientHomeColors.TextDark,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
-
-            // Notification Icon
-            Box(
-                modifier = Modifier
-                    .size(44.dp)
-                    .border(1.dp, Color(0xFFE5E7EB), CircleShape)
-                    .clip(CircleShape)
-                    .clickable { },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Notifications,
-                    contentDescription = "Notifications",
-                    tint = PatientHomeColors.TextDark,
-                    modifier = Modifier.size(22.dp)
-                )
-            }
+        // Logout Button
+        Button(
+            onClick = onLogoutClick,
+            modifier = Modifier.height(40.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFE53935)
+            ),
+            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
+        ) {
+            Text(
+                text = "Logout",
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
         }
     }
 }
@@ -464,23 +451,29 @@ fun DoctorCategoryItem(category: DoctorCategory) {
 }
 
 @Composable
-fun PopularDoctorsSection() {
+fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
     val doctors = listOf(
         Doctor(
-            name = "Chloe Kelly",
-            specialty = "M.Ch (Neuro)",
+            firstName = "Chloe",
+            lastName = "Kelly",
+            field = "Neurology",
+            position = "Senior Consultant",
             rating = 4.5,
-            reviews = 2530,
-            fee = "$50.99",
-            imageRes = R.drawable.ic_doctor_placeholder
+            appointments = 2530,
+            imageRes = R.drawable.ic_doctor_placeholder,
+            sex = "Female",
+            age = 38
         ),
         Doctor(
-            name = "Lauren Hemp",
-            specialty = "Spinal Surgery",
+            firstName = "Lauren",
+            lastName = "Hemp",
+            field = "Spinal Surgery",
+            position = "Chief Surgeon",
             rating = 4.5,
-            reviews = 2530,
-            fee = "$50.99",
-            imageRes = R.drawable.ic_doctor_placeholder
+            appointments = 2530,
+            imageRes = R.drawable.ic_doctor_placeholder,
+            sex = "Female",
+            age = 42
         )
     )
 
@@ -510,18 +503,18 @@ fun PopularDoctorsSection() {
 
         // Doctor Cards
         doctors.forEach { doctor ->
-            DoctorCard(doctor = doctor)
+            DoctorCard(doctor = doctor, onViewDetailsClick = { onDoctorClick(doctor) })
             Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
 
 @Composable
-fun DoctorCard(doctor: Doctor) {
+fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { },
+            .clickable { onViewDetailsClick() },
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = PatientHomeColors.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
@@ -541,7 +534,7 @@ fun DoctorCard(doctor: Doctor) {
             ) {
                 Image(
                     painter = painterResource(id = doctor.imageRes),
-                    contentDescription = doctor.name,
+                    contentDescription = doctor.fullName,
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -552,16 +545,23 @@ fun DoctorCard(doctor: Doctor) {
             // Doctor Info
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = doctor.name,
+                    text = doctor.fullName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = PatientHomeColors.TextDark
                 )
 
                 Text(
-                    text = doctor.specialty,
+                    text = doctor.field,
                     fontSize = 13.sp,
                     color = PatientHomeColors.TextGray,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+
+                Text(
+                    text = doctor.position,
+                    fontSize = 12.sp,
+                    color = PatientHomeColors.TextLightGray,
                     modifier = Modifier.padding(top = 2.dp)
                 )
 
@@ -578,33 +578,20 @@ fun DoctorCard(doctor: Doctor) {
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${doctor.rating} (${doctor.reviews})",
+                        text = "${doctor.rating} (${doctor.appointments})",
                         fontSize = 12.sp,
                         color = PatientHomeColors.TextGray
                     )
                 }
             }
 
-            // Fee and Book Button
+            // View Details Button
             Column(
-                horizontalAlignment = Alignment.End
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.Center
             ) {
-                Text(
-                    text = "Fees",
-                    fontSize = 11.sp,
-                    color = PatientHomeColors.TextLightGray
-                )
-                Text(
-                    text = doctor.fee,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = PatientHomeColors.TextDark
-                )
-
-                Spacer(modifier = Modifier.height(8.dp))
-
                 Button(
-                    onClick = { },
+                    onClick = onViewDetailsClick,
                     modifier = Modifier.height(32.dp),
                     shape = RoundedCornerShape(8.dp),
                     colors = ButtonDefaults.buttonColors(
@@ -613,7 +600,7 @@ fun DoctorCard(doctor: Doctor) {
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 0.dp)
                 ) {
                     Text(
-                        text = "Book Now",
+                        text = "View Details",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = PatientHomeColors.White

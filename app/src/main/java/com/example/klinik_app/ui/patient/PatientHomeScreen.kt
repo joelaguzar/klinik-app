@@ -1,5 +1,9 @@
 package com.example.klinik_app.ui.patient
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -17,6 +21,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,6 +53,7 @@ object PatientHomeColors {
 @Composable
 fun PatientHomeScreen() {
     var selectedNavItem by remember { mutableIntStateOf(0) }
+    var selectedDoctor by remember { mutableStateOf<Doctor?>(null) }
     
     // Navigation items using the reusable GlassNavItem with modern rounded icons
     val navItems = listOf(
@@ -64,21 +70,45 @@ fun PatientHomeScreen() {
     ) {
         PatientBackgroundBlobs()
 
-        when (selectedNavItem) {
-            0 -> HomeContent()
-            1 -> AppointmentsScreen()
-            2 -> InboxScreen()
-            3 -> ProfileScreen()
+        // Show Doctor Profile Screen if a doctor is selected
+        AnimatedContent(
+            targetState = selectedDoctor,
+            transitionSpec = {
+                if (targetState != null) {
+                    slideInHorizontally { it } togetherWith slideOutHorizontally { -it }
+                } else {
+                    slideInHorizontally { -it } togetherWith slideOutHorizontally { it }
+                }
+            },
+            label = "DoctorProfileTransition"
+        ) { doctor ->
+            if (doctor != null) {
+                DoctorProfileScreen(
+                    doctor = doctor,
+                    onBackClick = { selectedDoctor = null }
+                )
+            } else {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when (selectedNavItem) {
+                        0 -> HomeContent(onDoctorClick = { selectedDoctor = it })
+                        1 -> AppointmentsScreen()
+                        2 -> InboxScreen()
+                        3 -> ProfileScreen()
+                    }
+                }
+            }
         }
         
-        // buttom navbar
-        GlassBottomNavBar(
-            items = navItems,
-            selectedIndex = selectedNavItem,
-            onItemSelected = { selectedNavItem = it },
-            onFabClick = { /* Handle medical/appointment action */ },
-            modifier = Modifier.align(Alignment.BottomCenter)
-        )
+        // Only show bottom navbar when not viewing doctor profile
+        if (selectedDoctor == null) {
+            GlassBottomNavBar(
+                items = navItems,
+                selectedIndex = selectedNavItem,
+                onItemSelected = { selectedNavItem = it },
+                onFabClick = { /* Handle medical/appointment action */ },
+                modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 
