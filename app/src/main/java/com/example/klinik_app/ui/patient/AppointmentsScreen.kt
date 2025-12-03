@@ -1,10 +1,5 @@
 package com.example.klinik_app.ui.patient
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,7 +25,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.CheckCircle
@@ -45,7 +39,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -69,28 +62,64 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
+import com.example.klinik_app.data.MockData
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.klinik_app.data.Appointment as DataAppointment
+import com.example.klinik_app.data.AppointmentStatus as DataAppointmentStatus
+import com.example.klinik_app.data.DoctorResponse as DataDoctorResponse
 
-// Appointment Status Enum
+///TODO: FIREBASE - PATIENT APPOINTMENTS
+/// 1. Create AppointmentsViewModel with AppointmentRepository
+/// 2. Observe appointments in real-time:
+///    - firestore.collection("appointments")
+///        .whereEqualTo("patientId", currentUserId)
+///        .orderBy("createdAt", Query.Direction.DESCENDING)
+///        .snapshots()
+/// 3. Add loading/error states
+/// 4. Implement appointment cancellation
+/// 5. Add push notifications for appointment status changes
+/// 6. Store appointment data locally for offline viewing
+
 enum class AppointmentStatus {
     PENDING,
     ACCEPTED,
     DECLINED,
-    COMPLETED
+    COMPLETED;
+    
+    companion object {
+        fun fromDataStatus(status: DataAppointmentStatus): AppointmentStatus {
+            return when (status) {
+                DataAppointmentStatus.PENDING -> PENDING
+                DataAppointmentStatus.ACCEPTED -> ACCEPTED
+                DataAppointmentStatus.DECLINED -> DECLINED
+                DataAppointmentStatus.COMPLETED -> COMPLETED
+            }
+        }
+    }
 }
 
-// Doctor Response Data Class
 data class DoctorResponse(
     val message: String,
     val scheduledDate: String? = null,
     val scheduledTime: String? = null,
     val notes: String? = null
-)
+) {
+    companion object {
+        fun fromDataResponse(response: DataDoctorResponse?): DoctorResponse? {
+            if (response == null) return null
+            return DoctorResponse(
+                message = response.recommendations,
+                scheduledDate = response.respondedAt.substring(0, 10),
+                scheduledTime = null,
+                notes = response.diagnosis
+            )
+        }
+    }
+}
 
-// Appointment Data Class
 data class Appointment(
     val id: String,
     val patientId: String,
@@ -102,9 +131,25 @@ data class Appointment(
     val doctorResponse: DoctorResponse? = null,
     val createdAt: String,
     val updatedAt: String
-)
+) {
+    companion object {
+        fun fromDataAppointment(dataAppointment: DataAppointment): Appointment {
+            return Appointment(
+                id = dataAppointment.id,
+                patientId = dataAppointment.patientId,
+                doctorId = dataAppointment.doctorId,
+                doctorName = MockData.getDoctorNameForAppointment(dataAppointment),
+                status = AppointmentStatus.fromDataStatus(dataAppointment.status),
+                symptoms = dataAppointment.symptoms,
+                description = dataAppointment.description,
+                doctorResponse = DoctorResponse.fromDataResponse(dataAppointment.doctorResponse),
+                createdAt = dataAppointment.createdAt,
+                updatedAt = dataAppointment.updatedAt
+            )
+        }
+    }
+}
 
-// Status colors and styling
 object AppointmentStatusColors {
     val PendingBackground = Color(0xFFFFF3CD)
     val PendingText = Color(0xFF856404)
@@ -123,74 +168,36 @@ fun AppointmentsScreen() {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    // Sample appointments data
-    val appointments = remember {
-        listOf(
-            Appointment(
-                id = "1",
-                patientId = "patient123",
-                doctorId = "doctor456",
-                doctorName = "Dr. Chloe Kelly",
-                status = AppointmentStatus.ACCEPTED,
-                symptoms = "Headache, Dizziness",
-                description = "I've been experiencing severe headaches and occasional dizziness for the past week. The pain is mostly on the left side of my head.",
-                doctorResponse = DoctorResponse(
-                    message = "I've reviewed your symptoms. Please come in for a consultation.",
-                    scheduledDate = "2024-12-10",
-                    scheduledTime = "10:00 AM",
-                    notes = "Please bring any previous medical records related to headaches."
-                ),
-                createdAt = "2024-12-01T10:30:00Z",
-                updatedAt = "2024-12-02T14:20:00Z"
-            ),
-            Appointment(
-                id = "2",
-                patientId = "patient123",
-                doctorId = null,
-                doctorName = null,
-                status = AppointmentStatus.PENDING,
-                symptoms = "Back Pain, Muscle Stiffness",
-                description = "Lower back pain that has been persistent for 2 weeks. Pain increases when sitting for long periods.",
-                doctorResponse = null,
-                createdAt = "2024-12-03T09:15:00Z",
-                updatedAt = "2024-12-03T09:15:00Z"
-            ),
-            Appointment(
-                id = "3",
-                patientId = "patient123",
-                doctorId = "doctor789",
-                doctorName = "Dr. Lauren Hemp",
-                status = AppointmentStatus.COMPLETED,
-                symptoms = "Fever, Cough",
-                description = "Had high fever and persistent cough. Needed medical attention.",
-                doctorResponse = DoctorResponse(
-                    message = "Treatment completed successfully. Follow-up in 2 weeks if symptoms persist.",
-                    scheduledDate = "2024-11-25",
-                    scheduledTime = "2:30 PM",
-                    notes = "Prescribed antibiotics for 7 days."
-                ),
-                createdAt = "2024-11-20T11:00:00Z",
-                updatedAt = "2024-11-25T15:30:00Z"
-            ),
-            Appointment(
-                id = "4",
-                patientId = "patient123",
-                doctorId = "doctor456",
-                doctorName = "Dr. Chloe Kelly",
-                status = AppointmentStatus.DECLINED,
-                symptoms = "Skin Rash",
-                description = "Developed a rash on arms. Looking for dermatology consultation.",
-                doctorResponse = DoctorResponse(
-                    message = "I apologize, but this condition requires a dermatologist. Please book with our dermatology department.",
-                    notes = "Referred to dermatology department."
-                ),
-                createdAt = "2024-11-28T16:45:00Z",
-                updatedAt = "2024-11-29T09:00:00Z"
-            )
-        )
+    val currentPatient = MockData.getCurrentPatient()
+    ///TODO: Replace with Firebase Firestore real-time query
+    /// val appointments by viewModel.appointmentsFlow.collectAsState(initial = emptyList())
+    /// val isLoading by viewModel.isLoading.collectAsState()
+    /// 
+    /// ViewModel implementation:
+    /// private val _appointmentsFlow = MutableStateFlow<List<Appointment>>(emptyList())
+    /// val appointmentsFlow: StateFlow<List<Appointment>> = _appointmentsFlow
+    /// 
+    /// init {
+    ///     viewModelScope.launch {
+    ///         firestore.collection("appointments")
+    ///             .whereEqualTo("patientId", currentUserId)
+    ///             .orderBy("createdAt", Query.Direction.DESCENDING)
+    ///             .snapshots()
+    ///             .collect { snapshot ->
+    ///                 _appointmentsFlow.value = snapshot.toObjects<Appointment>()
+    ///             }
+    ///     }
+    /// }
+    val appointments = remember(currentPatient) {
+        if (currentPatient != null) {
+            MockData.getAppointmentsForPatient(currentPatient.id).map { 
+                Appointment.fromDataAppointment(it) 
+            }
+        } else {
+            emptyList()
+        }
     }
 
-    // Show bottom sheet when appointment is selected
     if (selectedAppointment != null) {
         ModalBottomSheet(
             onDismissRequest = { selectedAppointment = null },
@@ -214,10 +221,8 @@ fun AppointmentsScreen() {
             .fillMaxSize()
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
     ) {
-        // Header
         AppointmentsHeader()
 
-        // Appointments List
         if (appointments.isEmpty()) {
             EmptyAppointmentsView()
         } else {
@@ -232,7 +237,6 @@ fun AppointmentsScreen() {
                         onClick = { selectedAppointment = appointment }
                     )
                 }
-                // Bottom spacing for navbar
                 item {
                     Spacer(modifier = Modifier.height(100.dp))
                 }
@@ -257,13 +261,12 @@ fun AppointmentsHeader() {
             color = PatientHomeColors.TextDark
         )
 
-        // Filter button could be added here
         Box(
             modifier = Modifier
                 .size(40.dp)
                 .clip(CircleShape)
                 .background(PatientHomeColors.PrimaryLight)
-                .clickable { /* Filter action */ },
+                .clickable { },
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -327,7 +330,6 @@ fun AppointmentCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Top Row: Status Badge and Date
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -343,7 +345,6 @@ fun AppointmentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Symptoms
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -366,7 +367,6 @@ fun AppointmentCard(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Description Preview
             Text(
                 text = appointment.description,
                 fontSize = 13.sp,
@@ -377,7 +377,6 @@ fun AppointmentCard(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Doctor Info (if assigned)
             if (appointment.doctorName != null) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -401,7 +400,6 @@ fun AppointmentCard(
                         color = PatientHomeColors.Primary
                     )
 
-                    // Show scheduled time if available
                     if (appointment.doctorResponse?.scheduledTime != null) {
                         Spacer(modifier = Modifier.weight(1f))
                         Icon(
@@ -509,7 +507,6 @@ fun AppointmentDetailContent(
             .padding(horizontal = 24.dp)
             .padding(bottom = 32.dp)
     ) {
-        // Handle bar
         Box(
             modifier = Modifier
                 .align(Alignment.CenterHorizontally)
@@ -521,7 +518,6 @@ fun AppointmentDetailContent(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Header with Status
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -538,7 +534,6 @@ fun AppointmentDetailContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Symptoms Section
         DetailSection(
             icon = Icons.Default.MedicalServices,
             title = "Symptoms",
@@ -547,7 +542,6 @@ fun AppointmentDetailContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Description Section
         DetailSection(
             icon = Icons.Default.Description,
             title = "Description",
@@ -556,7 +550,6 @@ fun AppointmentDetailContent(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Date Info
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -566,7 +559,6 @@ fun AppointmentDetailContent(
                 modifier = Modifier.padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Created Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -584,7 +576,6 @@ fun AppointmentDetailContent(
                         color = PatientHomeColors.TextDark
                     )
                 }
-                // Last Updated Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -605,7 +596,6 @@ fun AppointmentDetailContent(
             }
         }
 
-        // Doctor Info Section (if assigned)
         if (appointment.doctorName != null) {
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -663,7 +653,6 @@ fun AppointmentDetailContent(
             }
         }
 
-        // Doctor Response Section (if available)
         if (appointment.doctorResponse != null) {
             Spacer(modifier = Modifier.height(20.dp))
 
@@ -723,7 +712,6 @@ fun AppointmentDetailContent(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Close Button
         Button(
             onClick = onDismiss,
             modifier = Modifier
@@ -778,7 +766,6 @@ fun DetailSection(
     }
 }
 
-// Helper function to format ISO date string
 fun formatDate(isoDate: String): String {
     return try {
         val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())

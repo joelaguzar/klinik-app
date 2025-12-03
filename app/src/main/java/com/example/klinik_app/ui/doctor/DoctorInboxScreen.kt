@@ -1,4 +1,4 @@
-package com.example.klinik_app.ui.patient
+package com.example.klinik_app.ui.doctor
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,8 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
 @Composable
-fun InboxScreen() {
+fun DoctorInboxScreen() {
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -35,14 +36,14 @@ fun InboxScreen() {
                 text = "Inbox",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = PatientHomeColors.TextDark
+                color = DoctorHomeColors.TextDark
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Coming Soon",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Medium,
-                color = PatientHomeColors.TextGray
+                color = DoctorHomeColors.TextGray
             )
         }
     }
@@ -50,8 +51,8 @@ fun InboxScreen() {
 
 @Preview(showBackground = true)
 @Composable
-fun PreviewInboxScreen() {
+fun PreviewDoctorInboxScreen() {
     MaterialTheme {
-        InboxScreen()
+        DoctorInboxScreen()
     }
 }

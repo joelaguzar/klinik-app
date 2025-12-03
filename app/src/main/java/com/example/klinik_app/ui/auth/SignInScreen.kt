@@ -58,6 +58,19 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.UserType
+
+///TODO: FIREBASE AUTHENTICATION - SIGN IN
+/// 1. Create AuthViewModel to handle authentication state
+/// 2. Replace MockData.authenticate() with Firebase Auth:
+///    - auth.signInWithEmailAndPassword(email, password).await()
+/// 3. Handle authentication states (loading, success, error)
+/// 4. Implement "Forgot Password" with auth.sendPasswordResetEmail(email)
+/// 5. Implement social login:
+///    - Google Sign-In: Firebase.auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null))
+///    - Facebook Login: Firebase.auth.signInWithCredential(FacebookAuthProvider.getCredential(token))
+/// 6. Use ViewModel state for error handling and loading indicators
 
 object KlinikGlassColors {
     val Cyan = Color(0xFF06b6d4)
@@ -76,16 +89,20 @@ object KlinikGlassColors {
 @Composable
 fun KlinikSignInScreen(
     onNavigateToSignUp: () -> Unit = {},
-    onSignInSuccess: () -> Unit = {}
+    onSignInSuccess: (String) -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
+    var selectedRole by remember { mutableStateOf("patient") }
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var isVisible by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // bg
         BackgroundBlobs()
 
         Column(
@@ -98,7 +115,6 @@ fun KlinikSignInScreen(
 
             Spacer(modifier = Modifier.height(80.dp))
 
-            // header - centered logo
             Box(
                 modifier = Modifier.fillMaxWidth(),
                 contentAlignment = Alignment.Center
@@ -110,7 +126,6 @@ fun KlinikSignInScreen(
                 )
             }
 
-            // subtxt
             Text(
                 text = "Health in your pocket",
                 color = KlinikGlassColors.TextGray,
@@ -122,7 +137,6 @@ fun KlinikSignInScreen(
 
             Spacer(modifier = Modifier.height(28.dp))
 
-            // login card
             GlassCard {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -138,25 +152,34 @@ fun KlinikSignInScreen(
                         text = "Please enter your details.",
                         fontSize = 14.sp,
                         color = KlinikGlassColors.TextGray,
-                        modifier = Modifier.padding(top = 8.dp, bottom = 32.dp)
+                        modifier = Modifier.padding(top = 8.dp, bottom = 24.dp)
                     )
 
-                    // email and pass
-                    var email by remember { mutableStateOf("") }
+                    RoleSelector(
+                        selectedRole = selectedRole,
+                        onRoleSelected = { selectedRole = it }
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
                     GlassTextField(
                         value = email,
-                        onValueChange = { email = it },
+                        onValueChange = { 
+                            email = it
+                            errorMessage = null
+                        },
                         placeholder = "Email Address",
                         icon = Icons.Default.Email
                     )
 
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    var password by remember { mutableStateOf("") }
-                    var isVisible by remember { mutableStateOf(false) }
                     GlassTextField(
                         value = password,
-                        onValueChange = { password = it },
+                        onValueChange = { 
+                            password = it
+                            errorMessage = null
+                        },
                         placeholder = "Password",
                         icon = Icons.Default.Lock,
                         isPassword = true,
@@ -164,7 +187,15 @@ fun KlinikSignInScreen(
                         onToggleVisibility = { isVisible = !isVisible }
                     )
 
-                    // forgot pass
+                    if (errorMessage != null) {
+                        Text(
+                            text = errorMessage!!,
+                            fontSize = 12.sp,
+                            color = Color.Red,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -176,15 +207,42 @@ fun KlinikSignInScreen(
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = KlinikGlassColors.Blue,
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { 
+                                ///TODO: Implement forgot password with Firebase
+                                /// if (email.isNotBlank()) {
+                                ///     viewModel.sendPasswordResetEmail(email) { success ->
+                                ///         if (success) showMessage("Password reset email sent")
+                                ///         else showError("Failed to send reset email")
+                                ///     }
+                                /// } else {
+                                ///     showError("Please enter your email first")
+                                /// }
+                            }
                         )
                     }
 
                     Spacer(modifier = Modifier.height(32.dp))
 
-                    // login button
                     Button(
-                        onClick = { onSignInSuccess() },
+                        onClick = {
+                            ///TODO: Replace with Firebase Authentication
+                            /// viewModel.signIn(email, password) { result ->
+                            ///     result.onSuccess { authResult ->
+                            ///         val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
+                            ///         onSignInSuccess(role)
+                            ///     }.onFailure { error ->
+                            ///         errorMessage = error.message ?: "Authentication failed"
+                            ///     }
+                            /// }
+                            val authResult = MockData.authenticate(email, password)
+                            if (authResult != null) {
+                                MockData.setCurrentUser(authResult.userId, authResult.userType)
+                                val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
+                                onSignInSuccess(role)
+                            } else {
+                                errorMessage = "Invalid email or password"
+                            }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp)
@@ -211,10 +269,31 @@ fun KlinikSignInScreen(
                             )
                         }
                     }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Demo: john.williamson@email.com / password123",
+                        fontSize = 10.sp,
+                        color = KlinikGlassColors.TextGray,
+                        modifier = Modifier.clickable {
+                            email = "john.williamson@email.com"
+                            password = "password123"
+                            selectedRole = "patient"
+                        }
+                    )
+                    Text(
+                        text = "Doctor: chloe.kelly@klinik.com / doctor123",
+                        fontSize = 10.sp,
+                        color = KlinikGlassColors.TextGray,
+                        modifier = Modifier.clickable {
+                            email = "chloe.kelly@klinik.com"
+                            password = "doctor123"
+                            selectedRole = "doctor"
+                        }
+                    )
                 }
             }
 
-            // footer
             Spacer(modifier = Modifier.height(18.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -231,7 +310,17 @@ fun KlinikSignInScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
+                ///TODO: Implement Facebook Sign-In
+                /// 1. Add Facebook SDK dependency
+                /// 2. Configure Facebook app in Facebook Developer Console
+                /// 3. Use LoginManager to get access token
+                /// 4. Exchange for Firebase credential: FacebookAuthProvider.getCredential(token)
                 SocialIconGlass(iconRes = R.drawable.ic_facebook)
+                ///TODO: Implement Google Sign-In
+                /// 1. Add Google Sign-In dependency: implementation("com.google.android.gms:play-services-auth:20.7.0")
+                /// 2. Configure OAuth client in Google Cloud Console
+                /// 3. Use GoogleSignIn to get ID token
+                /// 4. Exchange for Firebase credential: GoogleAuthProvider.getCredential(idToken, null)
                 SocialIconGlass(iconRes = R.drawable.ic_google)
 
             }
@@ -252,12 +341,9 @@ fun KlinikSignInScreen(
     }
 }
 
-// components
-
 @Composable
 fun BackgroundBlobs() {
     Canvas(modifier = Modifier.fillMaxSize()) {
-        // Top Left Cyan
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(KlinikGlassColors.Cyan.copy(alpha = 0.4f), Color.Transparent),
@@ -265,7 +351,6 @@ fun BackgroundBlobs() {
             ),
             center = Offset(0f, 0f), radius = 900f
         )
-        // Center Right Blue
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(KlinikGlassColors.Blue.copy(alpha = 0.3f), Color.Transparent),
@@ -273,7 +358,6 @@ fun BackgroundBlobs() {
             ),
             center = Offset(size.width, size.height * 0.4f), radius = 700f
         )
-        // Bottom Left Purple
         drawCircle(
             brush = Brush.radialGradient(
                 colors = listOf(KlinikGlassColors.Purple.copy(alpha = 0.2f), Color.Transparent),
@@ -369,6 +453,69 @@ fun SocialIconGlass(iconRes: Int) {
             painter = painterResource(id = iconRes),
             contentDescription = "Social Login",
             modifier = Modifier.size(28.dp)
+        )
+    }
+}
+
+@Composable
+fun RoleSelector(
+    selectedRole: String,
+    onRoleSelected: (String) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color(0xFFF1F5F9))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.SpaceEvenly
+    ) {
+        RoleOption(
+            text = "Patient",
+            isSelected = selectedRole == "patient",
+            onClick = { onRoleSelected("patient") },
+            modifier = Modifier.weight(1f)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        RoleOption(
+            text = "Doctor",
+            isSelected = selectedRole == "doctor",
+            onClick = { onRoleSelected("doctor") },
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
+fun RoleOption(
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(
+                if (isSelected) {
+                    Brush.horizontalGradient(
+                        colors = listOf(KlinikGlassColors.Cyan, KlinikGlassColors.Blue)
+                    )
+                } else {
+                    Brush.horizontalGradient(
+                        colors = listOf(Color.Transparent, Color.Transparent)
+                    )
+                }
+            )
+            .clickable { onClick() }
+            .padding(vertical = 12.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = if (isSelected) Color.White else KlinikGlassColors.TextGray
         )
     }
 }

@@ -45,16 +45,13 @@ fun SignUpStep1Content(
         modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Header
         StepHeader(
             title = "Create Account",
             subtitle = "Join us and take control of your health."
         )
 
-        // Personalized welcome message
         WelcomePersonalization(firstName = state.firstName)
 
-        // User type selection
         SectionLabel(text = "I am a")
 
         Row(
@@ -87,7 +84,6 @@ fun SignUpStep1Content(
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Form fields
         SignUpTextField(
             value = state.firstName,
             onValueChange = {
@@ -128,7 +124,6 @@ fun SignUpStep1Content(
 
         FieldSpacer()
 
-        // Password field with strength indicator
         Column(modifier = Modifier.fillMaxWidth()) {
             SignUpTextField(
                 value = state.password,
@@ -144,11 +139,9 @@ fun SignUpStep1Content(
                 onToggleVisibility = state::togglePasswordVisibility,
                 errorMessage = state.passwordError
             )
-            
-            // Password strength indicator
+
             PasswordStrengthIndicator(password = state.password)
-            
-            // Password requirements hint
+
             if (state.password.isNotEmpty()) {
                 PasswordRequirementsHint(password = state.password)
             }
@@ -172,7 +165,6 @@ fun SignUpStep1Content(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Terms and Conditions
         TermsAndConditionsCheckbox(
             isChecked = state.termsAccepted,
             onCheckedChange = { 
@@ -221,7 +213,6 @@ fun SignUpStep2PatientContent(
 
         FieldSpacer()
 
-        // Birthdate
         DatePickerField(
             label = "Birthdate",
             selectedDate = state.birthdate,
@@ -231,7 +222,6 @@ fun SignUpStep2PatientContent(
 
         FieldSpacer()
 
-        // Height and Weight
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -268,7 +258,6 @@ fun SignUpStep2PatientContent(
 
         FieldSpacer()
 
-        // Blood Type
         DropdownField(
             label = "Blood Type",
             selectedValue = state.bloodType,
@@ -309,7 +298,6 @@ fun SignUpStep2DoctorContent(
             subtitle = "Tell patients about yourself."
         )
 
-        // Sex selection
         SectionLabel(text = "Sex")
 
         SexSelectionRow(
@@ -324,7 +312,6 @@ fun SignUpStep2DoctorContent(
 
         FieldSpacer()
 
-        // Birthdate
         DatePickerField(
             label = "Birthdate",
             selectedDate = state.birthdate,
@@ -334,7 +321,6 @@ fun SignUpStep2DoctorContent(
 
         FieldSpacer()
 
-        // Title/Position
         SignUpTextField(
             value = state.title,
             onValueChange = {
@@ -348,7 +334,6 @@ fun SignUpStep2DoctorContent(
 
         FieldSpacer()
 
-        // Field dropdown
         DropdownField(
             label = "Field of Practice",
             selectedValue = state.field,
@@ -363,7 +348,6 @@ fun SignUpStep2DoctorContent(
 
         FieldSpacer()
 
-        // Tags section
         Column(modifier = Modifier.fillMaxWidth()) {
             SectionLabel(text = "Specialization Tags")
 
@@ -396,7 +380,6 @@ fun SignUpStep2DoctorContent(
 
         FieldSpacer()
 
-        // Short Introduction
         MultiLineTextField(
             value = state.shortIntroduction,
             onValueChange = {

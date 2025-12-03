@@ -2,9 +2,6 @@ package com.example.klinik_app.ui.patient.doctorprofile.models
 
 import java.time.LocalDate
 
-/**
- * Represents a day in the schedule picker.
- */
 data class ScheduleDay(
     val date: LocalDate,
     val dayOfWeek: String,
@@ -12,26 +9,17 @@ data class ScheduleDay(
     val isSelected: Boolean = false
 )
 
-/**
- * Represents a time slot for booking.
- */
 data class TimeSlot(
     val time: String,
     val isSelected: Boolean = false
 )
 
-/**
- * Enum representing time of day periods.
- */
 enum class TimeOfDay(val displayName: String) {
     MORNING("Morning"),
     AFTERNOON("Afternoon"),
     EVENING("Evening")
 }
 
-/**
- * State holder for the doctor profile screen.
- */
 data class DoctorProfileState(
     val selectedDayIndex: Int = 0,
     val selectedTimeOfDay: TimeOfDay = TimeOfDay.AFTERNOON,
@@ -40,13 +28,7 @@ data class DoctorProfileState(
     val description: String = ""
 )
 
-/**
- * Utility object for generating schedule data.
- */
 object ScheduleUtils {
-    /**
-     * Generates a list of schedule days starting from today.
-     */
     fun generateScheduleDays(
         daysCount: Int = 7,
         selectedIndex: Int = 0
@@ -66,9 +48,6 @@ object ScheduleUtils {
         }
     }
 
-    /**
-     * Returns time slots based on time of day.
-     */
     fun getTimeSlotsForTimeOfDay(timeOfDay: TimeOfDay): List<String> {
         return when (timeOfDay) {
             TimeOfDay.MORNING -> listOf("08-09 AM", "09-10 AM", "10-11 AM", "11-12 PM")

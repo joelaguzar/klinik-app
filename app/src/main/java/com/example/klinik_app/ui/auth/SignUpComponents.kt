@@ -87,7 +87,6 @@ fun StepIndicator(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Progress text
         Text(
             text = "Step $currentStep of $totalSteps",
             fontSize = 13.sp,
@@ -201,7 +200,6 @@ fun GradientButton(
     }
 }
 
-// Password strength calculation
 enum class PasswordStrength(val label: String, val color: Color, val progress: Float) {
     WEAK("Weak", Color(0xFFDC2626), 0.25f),
     FAIR("Fair", Color(0xFFF59E0B), 0.5f),
@@ -532,8 +530,6 @@ fun SexButton(
         }
     }
 }
-
-// ==================== Text Fields ====================
 
 @Composable
 fun SignUpTextField(

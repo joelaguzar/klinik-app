@@ -2,7 +2,6 @@ package com.example.klinik_app.ui.patient
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,7 +54,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
+import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.Patient
 import kotlinx.coroutines.launch
+import com.example.klinik_app.data.Doctor as DataDoctor
+
+///TODO: FIREBASE - HOME CONTENT
+/// 1. Inject PatientHomeViewModel
+/// 2. Observe doctors list: val doctors by viewModel.doctorsFlow.collectAsState()
+/// 3. Observe current patient: val patient by viewModel.currentPatientFlow.collectAsState()
+/// 4. Add loading states and error handling
+/// 5. Implement search/filter for doctors by specialty
+/// 6. Cache doctors list locally for offline access
 
 data class DoctorCategory(
     val name: String,
@@ -64,6 +74,7 @@ data class DoctorCategory(
 )
 
 data class Doctor(
+    val id: String,
     val firstName: String,
     val lastName: String,
     val field: String,
@@ -72,9 +83,30 @@ data class Doctor(
     val appointments: Int,
     val imageRes: Int,
     val sex: String = "Female",
-    val age: Int = 35
+    val age: Int = 35,
+    val tags: List<String> = emptyList(),
+    val description: String = ""
 ) {
     val fullName: String get() = "$firstName $lastName"
+    
+    companion object {
+        fun fromDataDoctor(dataDoctor: DataDoctor): Doctor {
+            return Doctor(
+                id = dataDoctor.id,
+                firstName = dataDoctor.firstName,
+                lastName = dataDoctor.lastName,
+                field = dataDoctor.field,
+                position = dataDoctor.position,
+                rating = dataDoctor.ratings,
+                appointments = dataDoctor.totalReviews,
+                imageRes = dataDoctor.imageRes,
+                sex = dataDoctor.sex.displayName(),
+                age = dataDoctor.age,
+                tags = dataDoctor.tags,
+                description = dataDoctor.description
+            )
+        }
+    }
 }
 
 data class PatientInfo(
@@ -82,7 +114,18 @@ data class PatientInfo(
     val height: String,
     val weight: String,
     val bloodType: String
-)
+) {
+    companion object {
+        fun fromPatient(patient: Patient): PatientInfo {
+            return PatientInfo(
+                age = patient.age,
+                height = patient.height,
+                weight = patient.weight,
+                bloodType = patient.bloodType
+            )
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -94,16 +137,17 @@ fun HomeContent(
     val sheetState = rememberModalBottomSheetState()
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
-    
-    // Sample patient info - in real app this would come from a ViewModel/repository
-    val patientInfo = PatientInfo(
+
+    val currentPatient = MockData.getCurrentPatient()
+    val patientInfo = currentPatient?.let { PatientInfo.fromPatient(it) } ?: PatientInfo(
         age = 28,
         height = "175 cm",
         weight = "70 kg",
         bloodType = "O+"
     )
+    
+    val patientName = currentPatient?.fullName ?: "Guest"
 
-    // SDG Bottom Sheet
     if (showBottomSheet) {
         ModalBottomSheet(
             onDismissRequest = { showBottomSheet = false },
@@ -129,32 +173,26 @@ fun HomeContent(
             .padding(top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding())
             .verticalScroll(scrollState)
     ) {
-        // header
-        HeaderSection(onLogoutClick = onLogoutClick)
-        
-        // Patient Info Section
+        HeaderSection(patientName = patientName, onLogoutClick = onLogoutClick)
+
         PatientInfoSection(patientInfo = patientInfo)
         
         Spacer(modifier = Modifier.height(24.dp))
 
-        // search
         SearchBanner(onSDGClick = { showBottomSheet = true })
         Spacer(modifier = Modifier.height(24.dp))
 
-        // sdg card
         FindYourDoctorSection()
         Spacer(modifier = Modifier.height(24.dp))
 
-        // doctor cards
         PopularDoctorsSection(onDoctorClick = onDoctorClick)
 
-        // Bottom spacing for navbar
         Spacer(modifier = Modifier.height(120.dp))
     }
 }
 
 @Composable
-fun HeaderSection(onLogoutClick: () -> Unit = {}) {
+fun HeaderSection(patientName: String = "Mr. Williamson", onLogoutClick: () -> Unit = {}) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -162,9 +200,7 @@ fun HeaderSection(onLogoutClick: () -> Unit = {}) {
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // User Info
         Row(verticalAlignment = Alignment.CenterVertically) {
-            // profile image
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -190,7 +226,7 @@ fun HeaderSection(onLogoutClick: () -> Unit = {}) {
                     fontWeight = FontWeight.Normal
                 )
                 Text(
-                    text = "Mr. Williamson",
+                    text = patientName,
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = PatientHomeColors.TextDark
@@ -198,7 +234,6 @@ fun HeaderSection(onLogoutClick: () -> Unit = {}) {
             }
         }
 
-        // Logout Button
         Button(
             onClick = onLogoutClick,
             modifier = Modifier.height(40.dp),
@@ -313,7 +348,6 @@ fun SearchBanner(onSDGClick: () -> Unit = {}) {
             modifier = Modifier.fillMaxSize(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // card text content
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -334,7 +368,6 @@ fun SearchBanner(onSDGClick: () -> Unit = {}) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // SDG Button
                 Button(
                     onClick = onSDGClick,
                     modifier = Modifier.height(36.dp),
@@ -353,14 +386,12 @@ fun SearchBanner(onSDGClick: () -> Unit = {}) {
                 }
             }
 
-            // Doctor Image
             Box(
                 modifier = Modifier
                     .weight(0.8f)
                     .fillMaxSize(),
                 contentAlignment = Alignment.BottomEnd
             ) {
-                // doctor icon placeholder
                 Image(
                     painter = painterResource(id = R.drawable.ic_doctor_placeholder),
                     contentDescription = "Doctor",
@@ -384,7 +415,6 @@ fun FindYourDoctorSection() {
     )
 
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-        // Section Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -407,7 +437,6 @@ fun FindYourDoctorSection() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Categories Row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
@@ -452,33 +481,21 @@ fun DoctorCategoryItem(category: DoctorCategory) {
 
 @Composable
 fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
-    val doctors = listOf(
-        Doctor(
-            firstName = "Chloe",
-            lastName = "Kelly",
-            field = "Neurology",
-            position = "Senior Consultant",
-            rating = 4.5,
-            appointments = 2530,
-            imageRes = R.drawable.ic_doctor_placeholder,
-            sex = "Female",
-            age = 38
-        ),
-        Doctor(
-            firstName = "Lauren",
-            lastName = "Hemp",
-            field = "Spinal Surgery",
-            position = "Chief Surgeon",
-            rating = 4.5,
-            appointments = 2530,
-            imageRes = R.drawable.ic_doctor_placeholder,
-            sex = "Female",
-            age = 42
-        )
-    )
+    ///TODO: Replace MockData with Firebase Firestore query
+    /// val doctors by viewModel.doctorsFlow.collectAsState(initial = emptyList())
+    /// 
+    /// ViewModel implementation:
+    /// val doctorsFlow: Flow<List<Doctor>> = firestore
+    ///     .collection("doctors")
+    ///     .orderBy("ratings", Query.Direction.DESCENDING)
+    ///     .limit(10)
+    ///     .snapshots()
+    ///     .map { snapshot -> snapshot.toObjects<Doctor>() }
+    val doctors = remember {
+        MockData.doctors.map { Doctor.fromDataDoctor(it) }
+    }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
-        // Section Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -501,7 +518,6 @@ fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Doctor Cards
         doctors.forEach { doctor ->
             DoctorCard(doctor = doctor, onViewDetailsClick = { onDoctorClick(doctor) })
             Spacer(modifier = Modifier.height(12.dp))
@@ -525,7 +541,6 @@ fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Doctor Image
             Box(
                 modifier = Modifier
                     .size(70.dp)
@@ -542,7 +557,6 @@ fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Doctor Info
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = doctor.fullName,
@@ -565,7 +579,6 @@ fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
                     modifier = Modifier.padding(top = 2.dp)
                 )
 
-                // Rating Row
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(top = 6.dp)
@@ -585,7 +598,6 @@ fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
                 }
             }
 
-            // View Details Button
             Column(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.Center
@@ -611,6 +623,7 @@ fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
     }
 }
 
+/// TODO: SDG Bottom Sheet Content
 @Composable
 fun SDGBottomSheetContent(onDismiss: () -> Unit) {
     Column(
@@ -620,7 +633,6 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
             .padding(bottom = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Handle bar indicator
         Box(
             modifier = Modifier
                 .width(40.dp)
@@ -652,7 +664,6 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        // Title
         Text(
             text = "SDG 3: Good Health and Well-Being",
             fontSize = 20.sp,
@@ -663,7 +674,6 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Subtitle
         Text(
             text = "Ensure healthy lives and promote well-being for all at all ages",
             fontSize = 14.sp,
@@ -674,7 +684,6 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
 
         Spacer(modifier = Modifier.height(20.dp))
 
-        // Description
         Text(
             text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
             fontSize = 14.sp,
@@ -685,7 +694,6 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Key Targets Section
         Card(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
@@ -712,7 +720,6 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Learn More Button
         Button(
             onClick = onDismiss,
             modifier = Modifier

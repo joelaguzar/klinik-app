@@ -26,9 +26,6 @@ import androidx.compose.ui.unit.sp
 import com.example.klinik_app.ui.patient.PatientHomeColors
 import com.example.klinik_app.ui.patient.doctorprofile.models.TimeOfDay
 
-/**
- * Section for selecting appointment time.
- */
 @Composable
 fun ChooseTimesSection(
     selectedTimeOfDay: TimeOfDay,
@@ -46,16 +43,14 @@ fun ChooseTimesSection(
         )
         
         Spacer(modifier = Modifier.height(16.dp))
-        
-        // Time of Day Selection (Morning, Afternoon, Evening)
+
         TimeOfDaySelector(
             selectedTimeOfDay = selectedTimeOfDay,
             onTimeOfDaySelected = onTimeOfDaySelected
         )
         
         Spacer(modifier = Modifier.height(20.dp))
-        
-        // Time Slot Label
+
         Text(
             text = "${selectedTimeOfDay.displayName} Schedule",
             fontSize = 14.sp,
@@ -64,8 +59,7 @@ fun ChooseTimesSection(
         )
         
         Spacer(modifier = Modifier.height(12.dp))
-        
-        // Time Slots Row
+
         TimeSlotsRow(
             timeSlots = timeSlots,
             selectedTimeSlotIndex = selectedTimeSlotIndex,
@@ -74,9 +68,6 @@ fun ChooseTimesSection(
     }
 }
 
-/**
- * Segmented control for selecting time of day (Morning, Afternoon, Evening).
- */
 @Composable
 fun TimeOfDaySelector(
     selectedTimeOfDay: TimeOfDay,
@@ -104,9 +95,6 @@ fun TimeOfDaySelector(
     }
 }
 
-/**
- * Individual chip for time of day selection.
- */
 @Composable
 fun TimeOfDayChip(
     text: String,
@@ -133,9 +121,6 @@ fun TimeOfDayChip(
     }
 }
 
-/**
- * Horizontally scrollable row of time slot chips.
- */
 @Composable
 fun TimeSlotsRow(
     timeSlots: List<String>,
@@ -158,9 +143,6 @@ fun TimeSlotsRow(
     }
 }
 
-/**
- * Individual chip for time slot selection.
- */
 @Composable
 fun TimeSlotChip(
     time: String,
