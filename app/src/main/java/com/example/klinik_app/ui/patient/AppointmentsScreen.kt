@@ -104,7 +104,7 @@ enum class AppointmentStatus {
 }
 
 data class DoctorResponse(
-    val message: String,
+    val message: String = "",
     val scheduledDate: String? = null,
     val scheduledTime: String? = null,
     val notes: String? = null

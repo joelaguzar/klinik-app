@@ -78,22 +78,22 @@ data class Doctor(
 }
 
 data class DoctorResponse(
-    val doctorId: String,
-    val diagnosis: String,
-    val recommendations: String,
-    val respondedAt: String // ISO date format
+    val doctorId: String = "",
+    val diagnosis: String = "",
+    val recommendations: String = "",
+    val respondedAt: String = ""
 )
 
 data class Appointment(
-    var id: String,
-    val patientId: String,
-    val doctorId: String?,
-    val status: AppointmentStatus,
-    val symptoms: String,
-    val description: String,
-    val doctorResponse: DoctorResponse?,
-    val createdAt: String, ///TODO: Change to com.google.firebase.Timestamp
-    val updatedAt: String  ///TODO: Change to com.google.firebase.Timestamp
+    var id: String = "",
+    val patientId: String = "",
+    val doctorId: String? = "",
+    val status: AppointmentStatus = AppointmentStatus.PENDING,
+    val symptoms: String = "",
+    val description: String = "",
+    val doctorResponse: DoctorResponse? = null,
+    val createdAt: String = "",
+    val updatedAt: String = ""
 )
 
 // ==================== MOCK DATA OBJECT ====================
@@ -110,28 +110,36 @@ object FirebaseData {
         val auth = FirebaseAuth.getInstance()
         val firestore = FirebaseFirestore.getInstance()
 
-        val user = auth.signInWithEmailAndPassword(email, password).await()
-        val uid = user.user?.uid.toString()
+        try {
+            val user = auth.signInWithEmailAndPassword(email, password).await()
+            val uid = user.user?.uid.toString()
 
-        // check if it's either in patient or doctor collection
-        val isPatient = firestore
-            .collection("patients")
-            .document(uid)
-            .get()
-            .await()
-            .exists()
+            // check if it's either in patient or doctor collection
+            val isPatient = firestore
+                .collection("patients")
+                .document(uid)
+                .get()
+                .await()
+                .exists()
 
-        val isDoctor = firestore
-            .collection("doctors")
-            .document(uid)
-            .get()
-            .await()
-            .exists()
+            val isDoctor = firestore
+                .collection("doctors")
+                .document(uid)
+                .get()
+                .await()
+                .exists()
 
-        if (isPatient) { return AuthResult(UserType.PATIENT, uid) }
-        else if (isDoctor) { return AuthResult(UserType.DOCTOR, uid) }
+            if (isPatient) {
+                return AuthResult(UserType.PATIENT, uid)
+            } else if (isDoctor) {
+                return AuthResult(UserType.DOCTOR, uid)
+            }
 
-        return null;
+            return null;
+
+        } catch (e: Exception) {
+            return null;
+        }
     }
     
     suspend fun getPatientById(id: String): Patient? {
