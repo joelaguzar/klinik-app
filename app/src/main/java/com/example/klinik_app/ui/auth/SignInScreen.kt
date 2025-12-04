@@ -274,22 +274,22 @@ fun KlinikSignInScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Demo: john.williamson@email.com / password123",
+                        text = "Demo: joel.aguzar@sample.com / JoelLazernieA1",
                         fontSize = 10.sp,
                         color = KlinikGlassColors.TextGray,
                         modifier = Modifier.clickable {
                             email = "john.williamson@email.com"
-                            password = "password123"
+                            password = "JoelLazernieA1"
                             selectedRole = "patient"
                         }
                     )
                     Text(
-                        text = "Doctor: chloe.kelly@klinik.com / doctor123",
+                        text = "Doctor: doktor.erix@klinik.com / ErixCrisostomoB2",
                         fontSize = 10.sp,
                         color = KlinikGlassColors.TextGray,
                         modifier = Modifier.clickable {
-                            email = "chloe.kelly@klinik.com"
-                            password = "doctor123"
+                            email = "doktor.erix@klinik.com "
+                            password = "ErixCrisostomoB2"
                             selectedRole = "doctor"
                         }
                     )
