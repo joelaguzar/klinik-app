@@ -33,6 +33,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -101,6 +103,9 @@ fun KlinikSignInScreen(
 
     // to handle async code
     val coroutineScope = rememberCoroutineScope()
+
+    // for error handling messages
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Box(
         modifier = Modifier
@@ -236,7 +241,7 @@ fun KlinikSignInScreen(
                                     val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
                                     onSignInSuccess(role)
                                 } else {
-                                    errorMessage = "Invalid email or password"
+                                    snackbarHostState.showSnackbar("Login failed. Check details.")
                                 }
                             }
                         },
@@ -335,6 +340,11 @@ fun KlinikSignInScreen(
                 )
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
