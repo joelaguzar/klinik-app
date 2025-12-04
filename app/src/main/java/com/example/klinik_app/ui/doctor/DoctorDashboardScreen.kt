@@ -28,9 +28,7 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -53,7 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Doctor as DataDoctor
 import com.example.klinik_app.data.AppointmentStatus as DataAppointmentStatus
 
@@ -159,7 +157,7 @@ fun DoctorDashboardScreen(
     /// val recentAppointments by viewModel.recentAppointmentsFlow.collectAsState()
     /// val isLoading by viewModel.isLoading.collectAsState()
     
-    val currentDoctor = MockData.getCurrentDoctor()
+    val currentDoctor = FirebaseData.getCurrentDoctor()
     val doctorProfile = remember(currentDoctor) {
         currentDoctor?.let { DoctorProfile.fromDataDoctor(it) } ?: DoctorProfile(
             firstName = "Guest",
@@ -176,7 +174,7 @@ fun DoctorDashboardScreen(
 
     val doctorAppointments = remember(currentDoctor) {
         if (currentDoctor != null) {
-            MockData.getAppointmentsForDoctor(currentDoctor.id)
+            FirebaseData.getAppointmentsForDoctor(currentDoctor.id)
         } else {
             emptyList()
         }
@@ -195,7 +193,7 @@ fun DoctorDashboardScreen(
         doctorAppointments.take(5).map { apt ->
             DoctorRecentAppointment(
                 id = apt.id,
-                patientName = MockData.getPatientNameForAppointment(apt) ?: "Unknown Patient",
+                patientName = FirebaseData.getPatientNameForAppointment(apt) ?: "Unknown Patient",
                 symptoms = apt.symptoms,
                 status = DoctorAppointmentStatus.fromDataStatus(apt.status),
                 scheduledTime = apt.doctorResponse?.respondedAt?.let { 

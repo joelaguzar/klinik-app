@@ -62,7 +62,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -138,7 +138,7 @@ data class Appointment(
                 id = dataAppointment.id,
                 patientId = dataAppointment.patientId,
                 doctorId = dataAppointment.doctorId,
-                doctorName = MockData.getDoctorNameForAppointment(dataAppointment),
+                doctorName = FirebaseData.getDoctorNameForAppointment(dataAppointment),
                 status = AppointmentStatus.fromDataStatus(dataAppointment.status),
                 symptoms = dataAppointment.symptoms,
                 description = dataAppointment.description,
@@ -168,7 +168,7 @@ fun AppointmentsScreen() {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    val currentPatient = MockData.getCurrentPatient()
+    val currentPatient = FirebaseData.getCurrentPatient()
     ///TODO: Replace with Firebase Firestore real-time query
     /// val appointments by viewModel.appointmentsFlow.collectAsState(initial = emptyList())
     /// val isLoading by viewModel.isLoading.collectAsState()
@@ -190,7 +190,7 @@ fun AppointmentsScreen() {
     /// }
     val appointments = remember(currentPatient) {
         if (currentPatient != null) {
-            MockData.getAppointmentsForPatient(currentPatient.id).map { 
+            FirebaseData.getAppointmentsForPatient(currentPatient.id).map {
                 Appointment.fromDataAppointment(it) 
             }
         } else {

@@ -47,8 +47,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
 
 ///TODO: FIREBASE - DOCTOR PROFILE
 /// 1. Create DoctorProfileViewModel with DoctorRepository
@@ -64,7 +63,7 @@ import com.example.klinik_app.data.MockData
 @Composable
 fun DoctorProfileScreen() {
     val scrollState = rememberScrollState()
-    val currentDoctor = remember { MockData.getCurrentDoctor() }
+    val currentDoctor = remember { FirebaseData.getCurrentDoctor() }
     
     Column(
         modifier = Modifier

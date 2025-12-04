@@ -54,7 +54,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Patient
 import kotlinx.coroutines.launch
 import com.example.klinik_app.data.Doctor as DataDoctor
@@ -138,7 +138,7 @@ fun HomeContent(
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val currentPatient = MockData.getCurrentPatient()
+    val currentPatient = FirebaseData.getCurrentPatient()
     val patientInfo = currentPatient?.let { PatientInfo.fromPatient(it) } ?: PatientInfo(
         age = 28,
         height = "175 cm",
@@ -492,7 +492,7 @@ fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
     ///     .snapshots()
     ///     .map { snapshot -> snapshot.toObjects<Doctor>() }
     val doctors = remember {
-        MockData.doctors.map { Doctor.fromDataDoctor(it) }
+        FirebaseData.doctors.map { Doctor.fromDataDoctor(it) }
     }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {

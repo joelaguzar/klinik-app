@@ -98,7 +98,11 @@ data class Appointment(
 
 // ==================== MOCK DATA OBJECT ====================
 
-object MockData {
+object FirebaseData {
+
+    // Default values present, just because.
+    private var currentUserId: String = "";
+    private var currentUserType: UserType = UserType.PATIENT;
     
     // ==================== HELPER FUNCTIONS ====================
     suspend fun authenticate(email: String, password: String): AuthResult? {
@@ -230,37 +234,10 @@ object MockData {
         return getPatientById(appointment.patientId)?.fullName
     }
 
-    ///TODO: Replace with Firebase Auth current user management
-    /// Use Firebase.auth.currentUser to get logged in user
-    /// Store user type in Firestore users collection
-    /// Consider using StateFlow for reactive user state
-    ///
-    /// class UserSessionManager {
-    ///     private val auth = Firebase.auth
-    ///     private val firestore = Firebase.firestore
-    ///
-    ///     val currentUserFlow: StateFlow<User?>
-    ///     val currentUserTypeFlow: StateFlow<UserType?>
-    ///
-    ///     suspend fun getCurrentPatient(): Patient? {
-    ///         val uid = auth.currentUser?.uid ?: return null
-    ///         return firestore.collection("patients").document(uid).get().await().toObject<Patient>()
-    ///     }
-    ///
-    ///     suspend fun getCurrentDoctor(): Doctor? {
-    ///         val uid = auth.currentUser?.uid ?: return null
-    ///         return firestore.collection("doctors").document(uid).get().await().toObject<Doctor>()
-    ///     }
-    /// }
-
-    // Default logged-in user (for demo purposes - Patient 1)
-    var currentUserId: String = "patient_001"
-    var currentUserType: UserType = UserType.PATIENT
-    
-    fun getCurrentPatient(): Patient? = 
+    suspend fun getCurrentPatient(): Patient? =
         if (currentUserType == UserType.PATIENT) getPatientById(currentUserId) else null
     
-    fun getCurrentDoctor(): Doctor? = 
+    suspend fun getCurrentDoctor(): Doctor? =
         if (currentUserType == UserType.DOCTOR) getDoctorById(currentUserId) else null
     
     fun setCurrentUser(userId: String, userType: UserType) {

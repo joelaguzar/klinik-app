@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -68,8 +67,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
-import com.example.klinik_app.data.AppointmentStatus as DataAppointmentStatus
+import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Appointment as DataAppointment
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -101,7 +99,7 @@ data class DoctorAppointment(
 ) {
     companion object {
         fun fromDataAppointment(dataAppointment: DataAppointment): DoctorAppointment {
-            val patient = MockData.getPatientById(dataAppointment.patientId)
+            val patient = FirebaseData.getPatientById(dataAppointment.patientId)
             return DoctorAppointment(
                 id = dataAppointment.id,
                 patientId = dataAppointment.patientId,
@@ -139,16 +137,16 @@ fun DoctorAppointmentsScreen() {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    val currentDoctor = MockData.getCurrentDoctor()
+    val currentDoctor = FirebaseData.getCurrentDoctor()
 
     val allAppointments = remember(currentDoctor) {
         val doctorAppointments = if (currentDoctor != null) {
-            MockData.getAppointmentsForDoctor(currentDoctor.id)
+            FirebaseData.getAppointmentsForDoctor(currentDoctor.id)
         } else {
             emptyList()
         }
 
-        val pendingAppointments = MockData.getPendingAppointments()
+        val pendingAppointments = FirebaseData.getPendingAppointments()
 
         (doctorAppointments + pendingAppointments)
             .distinctBy { it.id }

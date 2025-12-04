@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -58,7 +57,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.UserType
 
 ///TODO: FIREBASE AUTHENTICATION - SIGN IN
@@ -234,9 +233,9 @@ fun KlinikSignInScreen(
                             ///         errorMessage = error.message ?: "Authentication failed"
                             ///     }
                             /// }
-                            val authResult = MockData.authenticate(email, password)
+                            val authResult = FirebaseData.authenticate(email, password)
                             if (authResult != null) {
-                                MockData.setCurrentUser(authResult.userId, authResult.userType)
+                                FirebaseData.setCurrentUser(authResult.userId, authResult.userType)
                                 val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
                                 onSignInSuccess(role)
                             } else {
