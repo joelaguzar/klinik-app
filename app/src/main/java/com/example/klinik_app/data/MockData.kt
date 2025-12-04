@@ -1,40 +1,10 @@
 package com.example.klinik_app.data
 
 import com.example.klinik_app.R
-
-///TODO: FIREBASE SETUP
-/// 1. Add Firebase dependencies to build.gradle.kts:
-///    - implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-///    - implementation("com.google.firebase:firebase-auth-ktx")
-///    - implementation("com.google.firebase:firebase-firestore-ktx")
-///    - implementation("com.google.firebase:firebase-storage-ktx")
-/// 2. Add google-services.json to app/ folder
-/// 3. Add plugin: id("com.google.gms.google-services") to plugins block
-
-///TODO: FIREBASE FIRESTORE COLLECTIONS STRUCTURE
-/// - users (collection)
-///   - {userId} (document)
-///     - userType: "patient" | "doctor"
-///     - email: String
-///     - createdAt: Timestamp
-///
-/// - patients (collection)
-///   - {patientId} (document)
-///     - firstName, lastName, email, sex, birthdate, height, weight, bloodType, imageUrl
-///
-/// - doctors (collection)
-///   - {doctorId} (document)
-///     - firstName, lastName, email, sex, birthdate, position, field, tags[], description, ratings, totalReviews, imageUrl
-///
-/// - appointments (collection)
-///   - {appointmentId} (document)
-///     - patientId, doctorId, status, symptoms, description, doctorResponse (map), createdAt, updatedAt
-
-///TODO: Create Repository classes for Firebase operations:
-/// - AuthRepository: Handle Firebase Authentication
-/// - PatientRepository: CRUD operations for patients collection
-/// - DoctorRepository: CRUD operations for doctors collection
-/// - AppointmentRepository: CRUD operations for appointments collection
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.toObject
+import kotlinx.coroutines.tasks.await
 
 enum class Sex {
     MALE, FEMALE, OTHER;
@@ -51,13 +21,8 @@ enum class AppointmentStatus {
 
 // ==================== DATA CLASSES ====================
 
-///TODO: Add Firestore serialization support to Patient class
-/// - Add @DocumentId annotation for id field
-/// - Add toMap() function for writing to Firestore
-/// - Add companion object with fromFirestore(DocumentSnapshot) factory method
-/// - Consider using kotlinx.serialization or manual mapping
 data class Patient(
-    val id: String,
+    var id: String,
     val firstName: String,
     val lastName: String,
     val email: String,
@@ -84,7 +49,7 @@ data class Patient(
 }
 
 data class Doctor(
-    val id: String,
+    var id: String,
     val firstName: String,
     val lastName: String,
     val email: String,
@@ -104,7 +69,7 @@ data class Doctor(
     val age: Int get() {
         return try {
             val birthYear = birthdate.substring(0, 4).toInt()
-            val currentYear = 2024
+            val currentYear = 2025  // I really would love to use LocalDate.now() but i'm on Java 24 not 26 soo
             currentYear - birthYear
         } catch (e: Exception) {
             0
@@ -119,13 +84,8 @@ data class DoctorResponse(
     val respondedAt: String // ISO date format
 )
 
-///TODO: Add Firestore serialization support to Appointment class
-/// - Add @DocumentId annotation for id field
-/// - Add toMap() function for writing to Firestore
-/// - Add companion object with fromFirestore(DocumentSnapshot) factory method
-/// - Use Timestamp instead of String for createdAt/updatedAt
 data class Appointment(
-    val id: String,
+    var id: String,
     val patientId: String,
     val doctorId: String?,
     val status: AppointmentStatus,
@@ -138,46 +98,6 @@ data class Appointment(
 
 // ==================== MOCK DATA OBJECT ====================
 
-///TODO: Replace MockData object with Firebase repositories
-/// Create the following repository classes:
-///
-/// class AuthRepository {
-///     private val auth = Firebase.auth
-///     suspend fun signIn(email: String, password: String): Result<FirebaseUser>
-///     suspend fun signUp(email: String, password: String): Result<FirebaseUser>
-///     suspend fun signOut()
-///     fun getCurrentUser(): FirebaseUser?
-///     fun isUserLoggedIn(): Boolean
-/// }
-///
-/// class PatientRepository {
-///     private val firestore = Firebase.firestore
-///     private val patientsCollection = firestore.collection("patients")
-///     suspend fun createPatient(patient: Patient): Result<String>
-///     suspend fun getPatientById(id: String): Result<Patient?>
-///     suspend fun updatePatient(patient: Patient): Result<Unit>
-///     fun getPatientFlow(id: String): Flow<Patient?>
-/// }
-///
-/// class DoctorRepository {
-///     private val firestore = Firebase.firestore
-///     private val doctorsCollection = firestore.collection("doctors")
-///     suspend fun createDoctor(doctor: Doctor): Result<String>
-///     suspend fun getDoctorById(id: String): Result<Doctor?>
-///     suspend fun getAllDoctors(): Result<List<Doctor>>
-///     fun getDoctorsFlow(): Flow<List<Doctor>>
-/// }
-///
-/// class AppointmentRepository {
-///     private val firestore = Firebase.firestore
-///     private val appointmentsCollection = firestore.collection("appointments")
-///     suspend fun createAppointment(appointment: Appointment): Result<String>
-///     suspend fun updateAppointmentStatus(id: String, status: AppointmentStatus): Result<Unit>
-///     suspend fun getAppointmentsForPatient(patientId: String): Result<List<Appointment>>
-///     suspend fun getAppointmentsForDoctor(doctorId: String): Result<List<Appointment>>
-///     suspend fun getPendingAppointments(): Result<List<Appointment>>
-///     fun getAppointmentsFlow(userId: String, userType: UserType): Flow<List<Appointment>>
-/// }
 object MockData {
     
     // ==================== 3 PATIENTS ====================
@@ -385,87 +305,135 @@ object MockData {
     
     // ==================== HELPER FUNCTIONS ====================
 
-    ///TODO: Replace with Firebase Authentication
-    /// suspend fun authenticate(email: String, password: String): Result<AuthResult> {
-    ///     return try {
-    ///         val authResult = auth.signInWithEmailAndPassword(email, password).await()
-    ///         val userId = authResult.user?.uid ?: throw Exception("User not found")
-    ///         val userDoc = firestore.collection("users").document(userId).get().await()
-    ///         val userType = UserType.valueOf(userDoc.getString("userType") ?: "PATIENT")
-    ///         Result.success(AuthResult(userType, userId))
-    ///     } catch (e: Exception) {
-    ///         Result.failure(e)
-    ///     }
-    /// }
-    fun authenticate(email: String, password: String): AuthResult? {
-        // Check patients
-        val patient = patients.find { it.email == email && it.password == password }
-        if (patient != null) {
-            return AuthResult(UserType.PATIENT, patient.id)
-        }
-        
-        // Check doctors
-        val doctor = doctors.find { it.email == email && it.password == password }
-        if (doctor != null) {
-            return AuthResult(UserType.DOCTOR, doctor.id)
-        }
-        
-        return null
+    suspend fun authenticate(email: String, password: String): AuthResult? {
+
+        val auth = FirebaseAuth.getInstance()
+        val firestore = FirebaseFirestore.getInstance()
+
+        val user = auth.signInWithEmailAndPassword(email, password).await()
+        val uid = user.user?.uid.toString()
+
+        // check if it's either in patient or doctor collection
+        val isPatient = firestore
+            .collection("patients")
+            .document(uid)
+            .get()
+            .await()
+            .exists()
+
+        val isDoctor = firestore
+            .collection("doctors")
+            .document(uid)
+            .get()
+            .await()
+            .exists()
+
+        if (isPatient) { return AuthResult(UserType.PATIENT, uid) }
+        else if (isDoctor) { return AuthResult(UserType.DOCTOR, uid) }
+
+        return null;
     }
     
-    ///TODO: Replace with Firestore query:
-    /// suspend fun getPatientById(id: String): Patient? {
-    ///     return firestore.collection("patients").document(id).get().await().toObject<Patient>()
-    /// }
-    fun getPatientById(id: String): Patient? = patients.find { it.id == id }
-    
-    ///TODO: Replace with Firestore query:
-    /// suspend fun getDoctorById(id: String): Doctor? {
-    ///     return firestore.collection("doctors").document(id).get().await().toObject<Doctor>()
-    /// }
-    fun getDoctorById(id: String): Doctor? = doctors.find { it.id == id }
-    
-    ///TODO: Replace with Firestore query:
-    /// suspend fun getAppointmentsForPatient(patientId: String): List<Appointment> {
-    ///     return firestore.collection("appointments")
-    ///         .whereEqualTo("patientId", patientId)
-    ///         .orderBy("createdAt", Query.Direction.DESCENDING)
-    ///         .get().await().toObjects<Appointment>()
-    /// }
-    fun getAppointmentsForPatient(patientId: String): List<Appointment> =
-        appointments.filter { it.patientId == patientId }
-    
-    ///TODO: Replace with Firestore query:
-    /// suspend fun getAppointmentsForDoctor(doctorId: String): List<Appointment> {
-    ///     return firestore.collection("appointments")
-    ///         .whereEqualTo("doctorId", doctorId)
-    ///         .orderBy("createdAt", Query.Direction.DESCENDING)
-    ///         .get().await().toObjects<Appointment>()
-    /// }
-    fun getAppointmentsForDoctor(doctorId: String): List<Appointment> =
-        appointments.filter { it.doctorId == doctorId }
-    
-    ///TODO: Replace with Firestore query:
-    /// suspend fun getPendingAppointments(): List<Appointment> {
-    ///     return firestore.collection("appointments")
-    ///         .whereEqualTo("status", AppointmentStatus.PENDING.name)
-    ///         .orderBy("createdAt", Query.Direction.DESCENDING)
-    ///         .get().await().toObjects<Appointment>()
-    /// }
-    fun getPendingAppointments(): List<Appointment> =
-        appointments.filter { it.status == AppointmentStatus.PENDING }
-    
+    suspend fun getPatientById(id: String): Patient? {
+        val firestore = FirebaseFirestore.getInstance()
+
+        val patient = firestore
+            .collection("patients")
+            .document(id)
+            .get()
+            .await()
+            .toObject<Patient>() ?: return null
+
+        patient.id = id;
+        return patient;
+    }
+
+    suspend fun getDoctorById(id: String): Doctor? {
+
+        val firestore = FirebaseFirestore.getInstance();
+
+        val doctor = firestore
+            .collection("doctors")
+            .document(id)
+            .get()
+            .await()
+            .toObject<Doctor>() ?: return null
+
+        doctor.id = id
+        return doctor
+    }
+
+    suspend fun getAppointmentsForPatient(patientId: String): List<Appointment> {
+
+        val firestore = FirebaseFirestore.getInstance()
+        val documents = firestore
+            .collection("appointments")
+            .whereEqualTo("patientId", patientId)
+            .get()
+            .await()
+
+
+        val appointments: MutableList<Appointment> = mutableListOf();
+        for (document in documents) {
+            val appointment = document.toObject<Appointment>()
+            appointment.id = document.id
+            appointments.add(appointment)
+        }
+
+        return appointments
+    }
+
+
+    suspend fun getAppointmentsForDoctor(doctorId: String): List<Appointment>{
+
+        val firestore = FirebaseFirestore.getInstance()
+        val docs = firestore
+            .collection("appointments")
+            .whereEqualTo("doctorId", doctorId)
+            .get()
+            .await()
+
+        val appointments: MutableList<Appointment> = mutableListOf();
+        for (document in docs) {
+            val appointment = document.toObject<Appointment>()
+            appointment.id = document.id
+            appointments.add(appointment)
+        }
+
+        return appointments
+    }
+
+
+    suspend fun getPendingAppointments(): List<Appointment> {
+
+        val firestore = FirebaseFirestore.getInstance()
+        val docs = firestore
+            .collection("appointments")
+            .whereEqualTo("status", "PENDING")
+            .get()
+            .await()
+
+        val appointments: MutableList<Appointment> = mutableListOf();
+        for (document in docs) {
+            val appointment = document.toObject<Appointment>()
+            appointment.id = document.id
+            appointments.add(appointment)
+        }
+
+        return appointments
+    }
+
     // get doctor name for an appointment
-    fun getDoctorNameForAppointment(appointment: Appointment): String? {
+    suspend fun getDoctorNameForAppointment(appointment: Appointment): String? {
         val doctorId = appointment.doctorId ?: return null
         return getDoctorById(doctorId)?.fullName
     }
     
     // get patient name for an appointment
-    fun getPatientNameForAppointment(appointment: Appointment): String? {
+    suspend fun getPatientNameForAppointment(appointment: Appointment): String? {
         return getPatientById(appointment.patientId)?.fullName
     }
-    
+
     ///TODO: Replace with Firebase Auth current user management
     /// Use Firebase.auth.currentUser to get logged in user
     /// Store user type in Firestore users collection
@@ -474,21 +442,21 @@ object MockData {
     /// class UserSessionManager {
     ///     private val auth = Firebase.auth
     ///     private val firestore = Firebase.firestore
-    ///     
+    ///
     ///     val currentUserFlow: StateFlow<User?>
     ///     val currentUserTypeFlow: StateFlow<UserType?>
-    ///     
+    ///
     ///     suspend fun getCurrentPatient(): Patient? {
     ///         val uid = auth.currentUser?.uid ?: return null
     ///         return firestore.collection("patients").document(uid).get().await().toObject<Patient>()
     ///     }
-    ///     
+    ///
     ///     suspend fun getCurrentDoctor(): Doctor? {
     ///         val uid = auth.currentUser?.uid ?: return null
     ///         return firestore.collection("doctors").document(uid).get().await().toObject<Doctor>()
     ///     }
     /// }
-    
+
     // Default logged-in user (for demo purposes - Patient 1)
     var currentUserId: String = "patient_001"
     var currentUserType: UserType = UserType.PATIENT
