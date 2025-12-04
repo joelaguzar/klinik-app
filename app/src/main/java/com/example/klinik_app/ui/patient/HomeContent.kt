@@ -365,14 +365,14 @@ fun SearchBanner(onSDGClick: () -> Unit = {}) {
                     .padding(start = 24.dp, top = 20.dp, bottom = 20.dp)
             ) {
                 Text(
-                    text = "Looking for",
-                    fontSize = 20.sp,
+                    text = "Aligned with SDG 3",
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
                     color = PatientHomeColors.TextDark
                 )
                 Text(
-                    text = "desired doctor?",
-                    fontSize = 20.sp,
+                    text = "Good Health and Well Being",
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
                     color = PatientHomeColors.TextDark
                 )
@@ -719,7 +719,7 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            text = "Klinik is an e-consultation platform designed to provide accessible and timely healthcare for all users, regardless of their location or schedule. By offering asynchronous consultations, users can receive medical advice and guidance at their own convenience, without needing to book in-person appointments or wait for long hours. Aligned with SDG 4: Good Health and Well-Being, Klinik's mission is to ensure equitable access to healthcare services and empower individuals to manage their health more effectively.",
             fontSize = 14.sp,
             color = PatientHomeColors.TextGray,
             textAlign = TextAlign.Start,
@@ -745,10 +745,10 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                SDGTargetItem(text = "Reduce maternal mortality")
-                SDGTargetItem(text = "End preventable deaths of newborns and children")
-                SDGTargetItem(text = "Fight communicable diseases")
-                SDGTargetItem(text = "Ensure universal access to healthcare services")
+                SDGTargetItem(text = "Provide universal access to healthcare")
+                SDGTargetItem(text = "Achieve universal healthcare coverage")
+                SDGTargetItem(text = "Reduce deaths from non-communicable diseases")
+                SDGTargetItem(text = "Strengthen health risk management")
             }
         }
 
