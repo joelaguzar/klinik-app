@@ -236,23 +236,6 @@ private fun Step2Content(
                 val firestore = FirebaseFirestore.getInstance();
 
                 if (validator.validateStep2Patient()) {
-                    /// TODO: Implement Firebase patient registration
-                    /// viewModel.registerPatient(
-                    ///     email = formState.email,
-                    ///     password = formState.password,
-                    ///     patientData = PatientData(
-                    ///         firstName = formState.firstName,
-                    ///         lastName = formState.lastName,
-                    ///         sex = formState.selectedSex,
-                    ///         birthdate = formState.birthdate,
-                    ///         height = formState.height,
-                    ///         weight = formState.weight,
-                    ///         bloodType = formState.bloodType
-                    ///     )
-                    /// ) { result ->
-                    ///     result.onSuccess { onNavigateToSignIn() }
-                    ///     result.onFailure { showError(it.message) }
-                    /// }
 
                     val patientMap = hashMapOf(
                         "email" to formState.email,
@@ -290,26 +273,6 @@ private fun Step2Content(
             validator = validator,
             onCreateAccount = {
                 if (validator.validateStep2Doctor()) {
-                    /// TODO: Implement Firebase doctor registration
-                    /// viewModel.registerDoctor(
-                    ///     email = formState.email,
-                    ///     password = formState.password,
-                    ///     doctorData = DoctorData(
-                    ///         firstName = formState.firstName,
-                    ///         lastName = formState.lastName,
-                    ///         sex = formState.selectedSex,
-                    ///         birthdate = formState.birthdate,
-                    ///         title = formState.title,
-                    ///         field = formState.field,
-                    ///         tags = formState.tags.toList(),
-                    ///         description = formState.shortIntroduction,
-                    ///         ratings = 0.0,
-                    ///         totalReviews = 0
-                    ///     )
-                    /// ) { result ->
-                    ///     result.onSuccess { onNavigateToSignIn() }
-                    ///     result.onFailure { showError(it.message) }
-                    /// }
 
                     val auth = FirebaseAuth.getInstance();
                     val firestore = FirebaseFirestore.getInstance();
@@ -337,6 +300,9 @@ private fun Step2Content(
                                 .set(doctorMap);
 
                             // TODO: add snack bar impl.
+
+                            // redirect to sign in page
+
                         }
 
                         .addOnFailureListener {
