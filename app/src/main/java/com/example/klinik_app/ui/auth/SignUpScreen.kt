@@ -242,7 +242,12 @@ private fun Step2Content(
                         "firstName" to formState.firstName,
                         "lastName" to formState.lastName,
                         "sex" to formState.selectedSex,
-                        "birthdate" to formState.birthdate,
+                        "birthdate" to formState.birthdate?.let { time ->
+                            // format the date to ISO
+                            val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                            formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                            formatter.format(java.util.Date(time))
+                        },
                         "height" to formState.height,
                         "weight" to formState.weight,
                         "bloodType" to formState.bloodType
@@ -282,7 +287,12 @@ private fun Step2Content(
                         "firstName" to formState.firstName,
                         "lastName" to formState.lastName,
                         "sex" to formState.selectedSex,
-                        "birthdate" to formState.birthdate,
+                        "birthdate" to formState.birthdate?.let { time ->
+                            // format the date to ISO
+                            val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                            formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                            formatter.format(java.util.Date(time))
+                        },
                         "title" to formState.title,
                         "field" to formState.field,
                         "tags" to formState.tags.toList(),
