@@ -492,16 +492,6 @@ fun DoctorCategoryItem(category: DoctorCategory) {
 
 @Composable
 fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
-    ///TODO: Replace MockData with Firebase Firestore query
-    /// val doctors by viewModel.doctorsFlow.collectAsState(initial = emptyList())
-    /// 
-    /// ViewModel implementation:
-    /// val doctorsFlow: Flow<List<Doctor>> = firestore
-    ///     .collection("doctors")
-    ///     .orderBy("ratings", Query.Direction.DESCENDING)
-    ///     .limit(10)
-    ///     .snapshots()
-    ///     .map { snapshot -> snapshot.toObjects<Doctor>() }
 
     val doctors by produceState<List<Doctor>>(initialValue = emptyList()) {
         try {
@@ -511,11 +501,11 @@ fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
 
             val tempList = mutableListOf<Doctor>()
             for (document in snapshot.documents) {
-                val doctorItem = document.toObject(Doctor::class.java)
+                val doctorItem = document.toObject(DataDoctor::class.java)
 
                 if (doctorItem != null) {
                     val finalDoctor = doctorItem.copy(id = document.id)
-                    tempList.add(finalDoctor)
+                    tempList.add(Doctor.fromDataDoctor(finalDoctor))
                 }
             }
 
