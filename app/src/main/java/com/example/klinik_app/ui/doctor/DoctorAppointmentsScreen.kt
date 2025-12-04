@@ -50,6 +50,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -68,19 +69,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
 import com.example.klinik_app.data.FirebaseData
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import com.example.klinik_app.data.Appointment as DataAppointment
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-///TODO: FIREBASE - DOCTOR APPOINTMENTS MANAGEMENT
-/// 1. Create DoctorAppointmentsViewModel
-/// 2. Observe all appointments for doctor + pending unassigned:
-/// 3. Implement Accept appointment:
-/// 4. Implement Decline appointment:
-/// 5. Implement Complete appointment:
-/// 6. Send push notifications to patient on status changes
 
 data class DoctorAppointment(
     val id: String,
@@ -98,7 +94,7 @@ data class DoctorAppointment(
     val updatedAt: String
 ) {
     companion object {
-        fun fromDataAppointment(dataAppointment: DataAppointment): DoctorAppointment {
+        suspend fun fromDataAppointment(dataAppointment: DataAppointment): DoctorAppointment {
             val patient = FirebaseData.getPatientById(dataAppointment.patientId)
             return DoctorAppointment(
                 id = dataAppointment.id,
@@ -137,21 +133,25 @@ fun DoctorAppointmentsScreen() {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    val currentDoctor = FirebaseData.getCurrentDoctor()
+    val allAppointments by produceState<List<DoctorAppointment>>(initialValue = emptyList()) {
+        withContext(Dispatchers.IO) {
+            val currentDoctor = FirebaseData.getCurrentDoctor()
 
-    val allAppointments = remember(currentDoctor) {
-        val doctorAppointments = if (currentDoctor != null) {
-            FirebaseData.getAppointmentsForDoctor(currentDoctor.id)
-        } else {
-            emptyList()
+            val doctorAppointments = if (currentDoctor != null) {
+                FirebaseData.getAppointmentsForDoctor(currentDoctor.id)
+            } else {
+                emptyList()
+            }
+
+            val pendingAppointments = FirebaseData.getPendingAppointments()
+
+            value = (doctorAppointments + pendingAppointments)
+                .distinctBy { it.id }
+                .map { DoctorAppointment.fromDataAppointment(it) }
         }
-
-        val pendingAppointments = FirebaseData.getPendingAppointments()
-
-        (doctorAppointments + pendingAppointments)
-            .distinctBy { it.id }
-            .map { DoctorAppointment.fromDataAppointment(it) }
     }
+
+
 
     val filteredAppointments = remember(selectedFilter, allAppointments) {
         when (selectedFilter) {
@@ -187,6 +187,12 @@ fun DoctorAppointmentsScreen() {
                     ///     result.onSuccess { /* Show success message */ }
                     ///     result.onFailure { /* Show error */ }
                     /// }
+
+                    val firestore = FirebaseFirestore.getInstance()
+
+                    val diag =
+
+
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         selectedAppointment = null
                     }

@@ -46,6 +46,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -63,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
 import com.example.klinik_app.data.FirebaseData
+import com.example.klinik_app.data.Patient
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -133,7 +135,7 @@ data class Appointment(
     val updatedAt: String
 ) {
     companion object {
-        fun fromDataAppointment(dataAppointment: DataAppointment): Appointment {
+        suspend fun fromDataAppointment(dataAppointment: DataAppointment): Appointment {
             return Appointment(
                 id = dataAppointment.id,
                 patientId = dataAppointment.patientId,
@@ -168,33 +170,16 @@ fun AppointmentsScreen() {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    val currentPatient = FirebaseData.getCurrentPatient()
-    ///TODO: Replace with Firebase Firestore real-time query
-    /// val appointments by viewModel.appointmentsFlow.collectAsState(initial = emptyList())
-    /// val isLoading by viewModel.isLoading.collectAsState()
-    /// 
-    /// ViewModel implementation:
-    /// private val _appointmentsFlow = MutableStateFlow<List<Appointment>>(emptyList())
-    /// val appointmentsFlow: StateFlow<List<Appointment>> = _appointmentsFlow
-    /// 
-    /// init {
-    ///     viewModelScope.launch {
-    ///         firestore.collection("appointments")
-    ///             .whereEqualTo("patientId", currentUserId)
-    ///             .orderBy("createdAt", Query.Direction.DESCENDING)
-    ///             .snapshots()
-    ///             .collect { snapshot ->
-    ///                 _appointmentsFlow.value = snapshot.toObjects<Appointment>()
-    ///             }
-    ///     }
-    /// }
-    val appointments = remember(currentPatient) {
+    val currentPatient by produceState<Patient?>(initialValue = null) {
+        value = FirebaseData.getCurrentPatient()
+    }
+
+    val appointments by produceState<List<Appointment>>(initialValue = emptyList(), currentPatient) {
         if (currentPatient != null) {
-            FirebaseData.getAppointmentsForPatient(currentPatient.id).map {
-                Appointment.fromDataAppointment(it) 
-            }
+            val rawData = FirebaseData.getAppointmentsForPatient(currentPatient!!.id)
+            value = rawData.map { Appointment.fromDataAppointment(it) }
         } else {
-            emptyList()
+            value = emptyList()
         }
     }
 

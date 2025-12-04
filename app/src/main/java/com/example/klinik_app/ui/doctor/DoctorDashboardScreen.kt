@@ -37,6 +37,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +53,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
+import com.example.klinik_app.data.Appointment
 import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Doctor as DataDoctor
 import com.example.klinik_app.data.AppointmentStatus as DataAppointmentStatus
@@ -156,8 +159,11 @@ fun DoctorDashboardScreen(
     /// val appointmentCounts by viewModel.appointmentCountsFlow.collectAsState()
     /// val recentAppointments by viewModel.recentAppointmentsFlow.collectAsState()
     /// val isLoading by viewModel.isLoading.collectAsState()
-    
-    val currentDoctor = FirebaseData.getCurrentDoctor()
+
+    val currentDoctor by produceState<DataDoctor?>(initialValue = null) {
+        value = FirebaseData.getCurrentDoctor()
+    }
+
     val doctorProfile = remember(currentDoctor) {
         currentDoctor?.let { DoctorProfile.fromDataDoctor(it) } ?: DoctorProfile(
             firstName = "Guest",
@@ -172,11 +178,11 @@ fun DoctorDashboardScreen(
         )
     }
 
-    val doctorAppointments = remember(currentDoctor) {
+    val doctorAppointments by produceState<List<Appointment>>(initialValue = emptyList(), currentDoctor) {
         if (currentDoctor != null) {
-            FirebaseData.getAppointmentsForDoctor(currentDoctor.id)
+            value = FirebaseData.getAppointmentsForDoctor(currentDoctor!!.id)
         } else {
-            emptyList()
+            value = emptyList()
         }
     }
 
@@ -189,18 +195,26 @@ fun DoctorDashboardScreen(
         )
     }
 
-    val recentAppointments = remember(doctorAppointments) {
-        doctorAppointments.take(5).map { apt ->
-            DoctorRecentAppointment(
-                id = apt.id,
-                patientName = FirebaseData.getPatientNameForAppointment(apt) ?: "Unknown Patient",
-                symptoms = apt.symptoms,
-                status = DoctorAppointmentStatus.fromDataStatus(apt.status),
-                scheduledTime = apt.doctorResponse?.respondedAt?.let { 
-                    formatRelativeTime(it)
-                },
-                createdAt = formatRelativeTime(apt.createdAt)
-            )
+    val recentAppointments by produceState<List<DoctorRecentAppointment>>(initialValue = emptyList(), doctorAppointments) {
+        if (doctorAppointments.isNotEmpty()) {
+            val processedList = doctorAppointments.take(5).map { apt ->
+
+                val patientName = FirebaseData.getPatientNameForAppointment(apt) ?: "Unknown Patient"
+
+                DoctorRecentAppointment(
+                    id = apt.id,
+                    patientName = patientName,
+                    symptoms = apt.symptoms,
+                    status = DoctorAppointmentStatus.fromDataStatus(apt.status),
+                    scheduledTime = apt.doctorResponse?.respondedAt?.let {
+                        formatRelativeTime(it)
+                    },
+                    createdAt = formatRelativeTime(apt.createdAt)
+                )
+            }
+            value = processedList
+        } else {
+            value = emptyList()
         }
     }
 

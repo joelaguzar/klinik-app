@@ -40,6 +40,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.UserType
+import kotlinx.coroutines.launch
 
 ///TODO: FIREBASE AUTHENTICATION - SIGN IN
 /// 1. Create AuthViewModel to handle authentication state
@@ -96,6 +98,9 @@ fun KlinikSignInScreen(
     var password by remember { mutableStateOf("") }
     var isVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // to handle async code
+    val coroutineScope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
@@ -224,22 +229,15 @@ fun KlinikSignInScreen(
 
                     Button(
                         onClick = {
-                            ///TODO: Replace with Firebase Authentication
-                            /// viewModel.signIn(email, password) { result ->
-                            ///     result.onSuccess { authResult ->
-                            ///         val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
-                            ///         onSignInSuccess(role)
-                            ///     }.onFailure { error ->
-                            ///         errorMessage = error.message ?: "Authentication failed"
-                            ///     }
-                            /// }
-                            val authResult = FirebaseData.authenticate(email, password)
-                            if (authResult != null) {
-                                FirebaseData.setCurrentUser(authResult.userId, authResult.userType)
-                                val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
-                                onSignInSuccess(role)
-                            } else {
-                                errorMessage = "Invalid email or password"
+                            coroutineScope.launch {
+                                val authResult = FirebaseData.authenticate(email, password)
+                                if (authResult != null) {
+                                    FirebaseData.setCurrentUser(authResult.userId, authResult.userType)
+                                    val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
+                                    onSignInSuccess(role)
+                                } else {
+                                    errorMessage = "Invalid email or password"
+                                }
                             }
                         },
                         modifier = Modifier

@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -56,7 +57,11 @@ import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
 import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Patient
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import com.example.klinik_app.data.Doctor as DataDoctor
 
 ///TODO: FIREBASE - HOME CONTENT
@@ -138,7 +143,13 @@ fun HomeContent(
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val currentPatient = FirebaseData.getCurrentPatient()
+    val currentPatient by produceState<Patient?>(initialValue = null) {
+        withContext(Dispatchers.IO) {
+            value = FirebaseData.getCurrentPatient()
+        }
+    }
+
+
     val patientInfo = currentPatient?.let { PatientInfo.fromPatient(it) } ?: PatientInfo(
         age = 28,
         height = "175 cm",
@@ -491,8 +502,31 @@ fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
     ///     .limit(10)
     ///     .snapshots()
     ///     .map { snapshot -> snapshot.toObjects<Doctor>() }
-    val doctors = remember {
-        FirebaseData.doctors.map { Doctor.fromDataDoctor(it) }
+
+    val doctors by produceState<List<Doctor>>(initialValue = emptyList()) {
+        try {
+
+            val firestore = FirebaseFirestore.getInstance()
+            val snapshot = firestore.collection("doctors").get().await()
+
+            val tempList = mutableListOf<Doctor>()
+            for (document in snapshot.documents) {
+                val doctorItem = document.toObject(Doctor::class.java)
+
+                if (doctorItem != null) {
+                    val finalDoctor = doctorItem.copy(id = document.id)
+                    tempList.add(finalDoctor)
+                }
+            }
+
+            tempList.sortByDescending { it.rating }
+
+            value = tempList
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            value = emptyList()
+        }
     }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
