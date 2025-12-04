@@ -22,16 +22,16 @@ enum class AppointmentStatus {
 // ==================== DATA CLASSES ====================
 
 data class Patient(
-    var id: String,
-    val firstName: String,
-    val lastName: String,
-    val email: String,
-    val password: String,
-    val sex: Sex,
-    val birthdate: String, // ISO date format (YYYY-MM-DD)
-    val height: String, // e.g., "175 cm"
-    val weight: String, // e.g., "70 kg"
-    val bloodType: String,
+    var id: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val email: String = "",
+    val password: String = "",
+    val sex: Sex = Sex.MALE,
+    val birthdate: String = "", // ISO date format (YYYY-MM-DD)
+    val height: String = "", // e.g., "175 cm"
+    val weight: String = "", // e.g., "70 kg"
+    val bloodType: String = "",
     val imageRes: Int = R.drawable.ic_user_placeholder
 ) {
     val fullName: String get() = "$firstName $lastName"
@@ -49,18 +49,18 @@ data class Patient(
 }
 
 data class Doctor(
-    var id: String,
-    val firstName: String,
-    val lastName: String,
-    val email: String,
-    val password: String,
-    val sex: Sex,
-    val birthdate: String, // ISO date format (YYYY-MM-DD)
-    val position: String,
-    val field: String,
-    val tags: List<String>,
-    val description: String,
-    val ratings: Double,
+    var id: String = "",
+    val firstName: String = "",
+    val lastName: String = "",
+    val email: String = "",
+    val password: String = "",
+    val sex: Sex = Sex.MALE,
+    val birthdate: String = "", // ISO date format (YYYY-MM-DD)
+    val position: String = "",
+    val field: String = "",
+    val tags: List<String> = emptyList<String>(),
+    val description: String = "",
+    val ratings: Double = 0.0,
     val totalReviews: Int = 0,
     val imageRes: Int = R.drawable.ic_doctor_placeholder
 ) {
