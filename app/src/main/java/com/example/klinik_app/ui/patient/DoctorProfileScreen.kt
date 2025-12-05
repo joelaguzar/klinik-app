@@ -19,11 +19,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.klinik_app.R
+import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.ui.patient.doctorprofile.components.BookAppointmentButton
 import com.example.klinik_app.ui.patient.doctorprofile.components.ChooseTimesSection
 import com.example.klinik_app.ui.patient.doctorprofile.components.DoctorBiographySection
@@ -34,23 +36,7 @@ import com.example.klinik_app.ui.patient.doctorprofile.components.RequirementsSe
 import com.example.klinik_app.ui.patient.doctorprofile.components.SchedulesSection
 import com.example.klinik_app.ui.patient.doctorprofile.models.ScheduleUtils
 import com.example.klinik_app.ui.patient.doctorprofile.models.TimeOfDay
-
-///TODO: FIREBASE - BOOK APPOINTMENT
-/// 1. Implement appointment booking:
-///    - firestore.collection("appointments").add(appointmentData)
-/// 2. AppointmentData structure:
-///    - patientId: currentUserId
-///    - doctorId: doctor.id
-///    - status: AppointmentStatus.PENDING
-///    - symptoms: symptoms
-///    - description: description
-///    - scheduledDate: selected date
-///    - scheduledTime: selected time slot
-///    - createdAt: FieldValue.serverTimestamp()
-///    - updatedAt: FieldValue.serverTimestamp()
-/// 3. Send notification to doctor about new appointment request
-/// 4. Navigate to appointments screen on success
-/// 5. Handle booking conflicts (same time slot)
+import kotlinx.coroutines.launch
 
 @Composable
 fun DoctorProfileScreen(
@@ -71,7 +57,9 @@ fun DoctorProfileScreen(
     val timeSlots = ScheduleUtils.getTimeSlotsForTimeOfDay(selectedTimeOfDay)
 
     val doctorTags = if (doctor.tags.isNotEmpty()) doctor.tags else listOf("Specialist", "Consultant")
-    
+
+    val scope = rememberCoroutineScope();
+
     DoctorProfileContent(
         doctor = doctor,
         doctorTags = doctorTags,
@@ -88,8 +76,18 @@ fun DoctorProfileScreen(
         description = description,
         onDescriptionChange = { description = it },
         onBackClick = onBackClick,
-        onBookAppointment = onBookAppointment,
-        scrollState = scrollState
+        scrollState = scrollState,
+        onBookAppointment = {
+            scope.launch {
+                FirebaseData.bookAppointment(
+                    doctorId = doctor.id,
+                    patientId = FirebaseData.getCurrentPatient()!!.id,
+                    description = description,
+                    symptoms = symptoms
+                )
+                onBackClick()
+            }
+        }
     )
 }
 

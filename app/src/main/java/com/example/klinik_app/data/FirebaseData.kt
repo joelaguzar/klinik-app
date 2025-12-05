@@ -5,6 +5,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.tasks.await
+import java.time.LocalDate
 
 enum class Sex {
     MALE, FEMALE, OTHER;
@@ -230,6 +231,42 @@ object FirebaseData {
 
         return appointments
     }
+
+    suspend fun bookAppointment(
+        doctorId: String,
+        patientId: String,
+        description: String,
+        symptoms: String
+    ): String? {
+
+        val today = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            .format(java.util.Date())
+
+        val appointment = mapOf(
+            "patientId" to patientId,
+            "doctorId" to doctorId,
+            "status" to "PENDING",
+            "symptoms" to symptoms,
+            "description" to description,
+            "createdAt" to today,
+            "updatedAt" to today
+        )
+
+        val firestore = FirebaseFirestore.getInstance()
+
+        return try {
+            val docRef = firestore.collection("appointments")
+                .add(appointment)
+                .await()
+
+            docRef.id
+
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+
 
     // get doctor name for an appointment
     suspend fun getDoctorNameForAppointment(appointment: Appointment): String? {
