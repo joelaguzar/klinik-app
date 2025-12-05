@@ -139,7 +139,8 @@ fun KlinikSignUpScreen(
             GlassCard {
                 SignUpContent(
                     formState = formState,
-                    validator = validator
+                    validator = validator,
+                    onNavigateToSignIn = onNavigateToSignIn
                 )
             }
 
@@ -196,7 +197,8 @@ private fun SignUpHeader(
 @Composable
 private fun SignUpContent(
     formState: SignUpFormState,
-    validator: SignUpValidator
+    validator: SignUpValidator,
+    onNavigateToSignIn: () -> Unit
 ) {
     AnimatedContent(
         targetState = formState.currentStep,
@@ -221,7 +223,7 @@ private fun SignUpContent(
                     }
                 }
             )
-            2 -> Step2Content(formState = formState, validator = validator)
+            2 -> Step2Content(formState = formState, validator = validator, onNavigateToSignIn = onNavigateToSignIn)
         }
     }
 }
@@ -229,7 +231,8 @@ private fun SignUpContent(
 @Composable
 private fun Step2Content(
     formState: SignUpFormState,
-    validator: SignUpValidator
+    validator: SignUpValidator,
+    onNavigateToSignIn: () -> Unit
 ) {
 
     // for error handling messages
@@ -274,7 +277,8 @@ private fun Step2Content(
                             scope.launch {
                                 snackbarHostState.showSnackbar("Sign up successful")
                             }
-                            // onNavigateToSignIn();
+
+                             onNavigateToSignIn();
                         }
                         .addOnFailureListener {
                             scope.launch {
@@ -326,7 +330,7 @@ private fun Step2Content(
                                 snackbarHostState.showSnackbar("Sign up successful")
                             }
 
-                            // redirect to sign in page
+                            onNavigateToSignIn();
 
                         }
 
