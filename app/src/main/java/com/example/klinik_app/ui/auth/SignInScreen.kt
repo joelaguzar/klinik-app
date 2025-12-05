@@ -235,7 +235,7 @@ fun KlinikSignInScreen(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                val authResult = FirebaseData.authenticate(email, password)
+                                val authResult = FirebaseData.authenticate(email, password, selectedRole)
                                 if (authResult != null) {
                                     FirebaseData.setCurrentUser(authResult.userId, authResult.userType)
                                     val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"

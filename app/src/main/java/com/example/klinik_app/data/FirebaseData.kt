@@ -105,7 +105,7 @@ object FirebaseData {
     private var currentUserType: UserType = UserType.PATIENT;
     
     // ==================== HELPER FUNCTIONS ====================
-    suspend fun authenticate(email: String, password: String): AuthResult? {
+    suspend fun authenticate(email: String, password: String, selectedType: String): AuthResult? {
 
         val auth = FirebaseAuth.getInstance()
         val firestore = FirebaseFirestore.getInstance()
@@ -129,9 +129,9 @@ object FirebaseData {
                 .await()
                 .exists()
 
-            if (isPatient) {
+            if (isPatient && selectedType == "patient") {
                 return AuthResult(UserType.PATIENT, uid)
-            } else if (isDoctor) {
+            } else if (isDoctor && selectedType == "doctor") {
                 return AuthResult(UserType.DOCTOR, uid)
             }
 
