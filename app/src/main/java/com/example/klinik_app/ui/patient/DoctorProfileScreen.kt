@@ -136,7 +136,7 @@ private fun DoctorProfileContent(
             
             Spacer(modifier = Modifier.height(24.dp))
 
-            DoctorBiographySection()
+            DoctorBiographySection(doctor.description)
             
             Spacer(modifier = Modifier.height(24.dp))
 
