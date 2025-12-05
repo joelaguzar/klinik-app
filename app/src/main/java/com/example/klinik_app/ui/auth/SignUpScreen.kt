@@ -369,6 +369,8 @@ private fun SignUpFooter(onNavigateToSignIn: () -> Unit) {
             modifier = Modifier.clickable { onNavigateToSignIn() }
         )
     }
+
+    Spacer(modifier = Modifier.height(25.dp))
 }
 
 @Preview(showBackground = true, heightDp = 1000)

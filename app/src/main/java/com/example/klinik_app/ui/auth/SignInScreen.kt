@@ -278,7 +278,7 @@ fun KlinikSignInScreen(
                         fontSize = 10.sp,
                         color = KlinikGlassColors.TextGray,
                         modifier = Modifier.clickable {
-                            email = "john.williamson@email.com"
+                            email = "joel.aguzar@sample.com"
                             password = "JoelLazernieA1"
                             selectedRole = "patient"
                         }
@@ -339,6 +339,8 @@ fun KlinikSignInScreen(
                     modifier = Modifier.clickable { onNavigateToSignUp() }
                 )
             }
+
+            Spacer(modifier = Modifier.height(25.dp))
         }
 
         SnackbarHost(
