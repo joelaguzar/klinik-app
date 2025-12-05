@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "584477274170",
+    "project_id": "klinik-7ea66",
+    "storage_bucket": "klinik-7ea66.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:584477274170:android:8da85635f14aed54520503",
+        "android_client_info": {
+          "package_name": "com.example.klinik_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBgbmNVYeBj_BNsNTV5V3PzZe1kmm02uUQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
