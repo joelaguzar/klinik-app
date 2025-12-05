@@ -288,7 +288,7 @@ fun KlinikSignInScreen(
                         fontSize = 10.sp,
                         color = KlinikGlassColors.TextGray,
                         modifier = Modifier.clickable {
-                            email = "doktor.erix@klinik.com "
+                            email = "doktor.erix@klinik.com"
                             password = "ErixCrisostomoB2"
                             selectedRole = "doctor"
                         }
