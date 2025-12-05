@@ -31,11 +31,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -51,6 +53,8 @@ import com.example.klinik_app.R
 import com.example.klinik_app.SocialIconGlass
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 ///TODO: FIREBASE AUTHENTICATION - SIGN UP
 /// 1. Create SignUpViewModel to handle registration state
@@ -76,6 +80,7 @@ fun KlinikSignUpScreen(
     val formState = remember { SignUpFormState() }
     val validator = remember { SignUpValidator(formState) }
     val datePickerState = rememberDatePickerState()
+
 
     if (formState.showDatePicker) {
         DatePickerDialog(
@@ -226,6 +231,11 @@ private fun Step2Content(
     formState: SignUpFormState,
     validator: SignUpValidator
 ) {
+
+    // for error handling messages
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     when (formState.selectedUserType) {
         UserType.PATIENT -> SignUpStep2PatientContent(
             state = formState,
@@ -261,12 +271,15 @@ private fun Step2Content(
                                 .document(id)
                                 .set(patientMap)
 
-                            // TODO: add snack bar indicator
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up successful")
+                            }
                             // onNavigateToSignIn();
                         }
                         .addOnFailureListener {
-
-                            // Show snack bar: Sign up failed. Error code: [error]
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up failed. Check details")
+                            }
                         }
 
 
@@ -309,14 +322,18 @@ private fun Step2Content(
                                 .document(id)
                                 .set(doctorMap);
 
-                            // TODO: add snack bar impl.
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up successful")
+                            }
 
                             // redirect to sign in page
 
                         }
 
                         .addOnFailureListener {
-                            // TODO: add snack bar impl.
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up failed. Check details")
+                            }
                         }
                 }
             }
