@@ -178,34 +178,21 @@ fun DoctorAppointmentsScreen() {
                     }
                 },
                 onAccept = {
-                    ///TODO: Implement Firebase accept appointment
-                    /// viewModel.acceptAppointment(
-                    ///     appointmentId = selectedAppointment!!.id,
-                    ///     diagnosis = "", // Get from input field
-                    ///     recommendations = "" // Get from input field
-                    /// ) { result ->
-                    ///     result.onSuccess { /* Show success message */ }
-                    ///     result.onFailure { /* Show error */ }
-                    /// }
 
-                    val firestore = FirebaseFirestore.getInstance()
-
-                    val diag =
-
+                    scope.launch {
+                        FirebaseData.acceptAppointment(selectedAppointment!!.id)
+                    }
 
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         selectedAppointment = null
                     }
                 },
                 onDecline = {
-                    ///TODO: Implement Firebase decline appointment
-                    /// viewModel.declineAppointment(
-                    ///     appointmentId = selectedAppointment!!.id,
-                    ///     reason = "" // Get from input field
-                    /// ) { result ->
-                    ///     result.onSuccess { /* Show success message */ }
-                    ///     result.onFailure { /* Show error */ }
-                    /// }
+
+                    scope.launch {
+                        FirebaseData.declineAppointment(selectedAppointment!!.id)
+                    }
+
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         selectedAppointment = null
                     }

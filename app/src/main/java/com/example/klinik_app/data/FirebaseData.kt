@@ -266,6 +266,38 @@ object FirebaseData {
         }
     }
 
+    suspend fun acceptAppointment(appointmentId: String): Boolean {
+        val firestore = FirebaseFirestore.getInstance()
+
+        return try {
+            firestore.collection("appointments")
+                .document(appointmentId)
+                .update("status", "ACCEPTED")
+                .await()
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
+    suspend fun declineAppointment(appointmentId: String): Boolean {
+        val firestore = FirebaseFirestore.getInstance()
+
+        return try {
+            firestore.collection("appointments")
+                .document(appointmentId)
+                .update("status", "DECLINED")
+                .await()
+
+            true
+        } catch (e: Exception) {
+            e.printStackTrace()
+            false
+        }
+    }
+
 
 
     // get doctor name for an appointment
