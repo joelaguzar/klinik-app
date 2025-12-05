@@ -56,19 +56,6 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-///TODO: FIREBASE AUTHENTICATION - SIGN UP
-/// 1. Create SignUpViewModel to handle registration state
-/// 2. Implement Firebase Auth registration:
-///    - auth.createUserWithEmailAndPassword(email, password).await()
-/// 3. After successful auth, create user document in Firestore:
-///    - firestore.collection("users").document(uid).set(mapOf("userType" to userType, "email" to email))
-///    - firestore.collection(if (isPatient) "patients" else "doctors").document(uid).set(userData)
-/// 4. For profile image upload:
-///    - Use Firebase Storage: storage.reference.child("profile_images/$uid.jpg").putFile(imageUri)
-///    - Get download URL and store in user document
-/// 5. Implement email verification: auth.currentUser?.sendEmailVerification()
-/// 6. Handle errors: duplicate email, weak password, network issues
-
 private const val TOTAL_STEPS = 2
 
 @OptIn(ExperimentalMaterial3Api::class)

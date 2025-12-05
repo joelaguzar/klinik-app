@@ -52,16 +52,6 @@ import androidx.compose.ui.unit.sp
 import com.example.klinik_app.data.Doctor
 import com.example.klinik_app.data.FirebaseData
 
-///TODO: FIREBASE - DOCTOR PROFILE
-/// 1. Create DoctorProfileViewModel with DoctorRepository
-/// 2. Observe current doctor data in real-time:
-///    - firestore.collection("doctors").document(currentUserId).snapshots()
-/// 3. Implement profile update:
-///    - firestore.collection("doctors").document(currentUserId).update(updatedData)
-/// 4. Implement profile image upload:
-///    - storage.reference.child("doctor_images/$userId.jpg").putFile(imageUri)
-///    - Update imageUrl field in doctor document
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DoctorProfileScreen() {

@@ -58,22 +58,6 @@ import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Doctor as DataDoctor
 import com.example.klinik_app.data.AppointmentStatus as DataAppointmentStatus
 
-///TODO: FIREBASE - DOCTOR DASHBOARD
-/// 1. Create DoctorDashboardViewModel
-/// 2. Observe doctor profile in real-time:
-///    - firestore.collection("doctors").document(currentUserId).snapshots()
-/// 3. Observe appointment statistics:
-///    - Query appointments where doctorId == currentUserId
-///    - Calculate counts for each status
-/// 4. Observe recent appointments:
-///    - firestore.collection("appointments")
-///        .whereEqualTo("doctorId", currentUserId)
-///        .orderBy("createdAt", Query.Direction.DESCENDING)
-///        .limit(5)
-///        .snapshots()
-/// 5. Also show pending appointments without assigned doctor
-/// 6. Implement real-time updates for new appointment notifications
-
 data class DoctorProfile(
     val firstName: String,
     val lastName: String,
@@ -153,13 +137,6 @@ object DoctorStatusColors {
 fun DoctorDashboardScreen(
     onLogoutClick: () -> Unit = {}
 ) {
-    ///TODO: Inject DoctorDashboardViewModel
-    /// val viewModel: DoctorDashboardViewModel = hiltViewModel()
-    /// val doctorProfile by viewModel.doctorProfileFlow.collectAsState()
-    /// val appointmentCounts by viewModel.appointmentCountsFlow.collectAsState()
-    /// val recentAppointments by viewModel.recentAppointmentsFlow.collectAsState()
-    /// val isLoading by viewModel.isLoading.collectAsState()
-
     val currentDoctor by produceState<DataDoctor?>(initialValue = null) {
         value = FirebaseData.getCurrentDoctor()
     }

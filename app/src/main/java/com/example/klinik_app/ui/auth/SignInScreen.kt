@@ -64,17 +64,6 @@ import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.UserType
 import kotlinx.coroutines.launch
 
-///TODO: FIREBASE AUTHENTICATION - SIGN IN
-/// 1. Create AuthViewModel to handle authentication state
-/// 2. Replace MockData.authenticate() with Firebase Auth:
-///    - auth.signInWithEmailAndPassword(email, password).await()
-/// 3. Handle authentication states (loading, success, error)
-/// 4. Implement "Forgot Password" with auth.sendPasswordResetEmail(email)
-/// 5. Implement social login:
-///    - Google Sign-In: Firebase.auth.signInWithCredential(GoogleAuthProvider.getCredential(idToken, null))
-///    - Facebook Login: Firebase.auth.signInWithCredential(FacebookAuthProvider.getCredential(token))
-/// 6. Use ViewModel state for error handling and loading indicators
-
 object KlinikGlassColors {
     val Cyan = Color(0xFF06b6d4)
     val Blue = Color(0xFF2563EB)
@@ -216,17 +205,7 @@ fun KlinikSignInScreen(
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = KlinikGlassColors.Blue,
-                            modifier = Modifier.clickable { 
-                                ///TODO: Implement forgot password with Firebase
-                                /// if (email.isNotBlank()) {
-                                ///     viewModel.sendPasswordResetEmail(email) { success ->
-                                ///         if (success) showMessage("Password reset email sent")
-                                ///         else showError("Failed to send reset email")
-                                ///     }
-                                /// } else {
-                                ///     showError("Please enter your email first")
-                                /// }
-                            }
+                            modifier = Modifier.clickable {}
                         )
                     }
 
@@ -312,19 +291,8 @@ fun KlinikSignInScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                ///TODO: Implement Facebook Sign-In
-                /// 1. Add Facebook SDK dependency
-                /// 2. Configure Facebook app in Facebook Developer Console
-                /// 3. Use LoginManager to get access token
-                /// 4. Exchange for Firebase credential: FacebookAuthProvider.getCredential(token)
                 SocialIconGlass(iconRes = R.drawable.ic_facebook)
-                ///TODO: Implement Google Sign-In
-                /// 1. Add Google Sign-In dependency: implementation("com.google.android.gms:play-services-auth:20.7.0")
-                /// 2. Configure OAuth client in Google Cloud Console
-                /// 3. Use GoogleSignIn to get ID token
-                /// 4. Exchange for Firebase credential: GoogleAuthProvider.getCredential(idToken, null)
                 SocialIconGlass(iconRes = R.drawable.ic_google)
-
             }
 
             Spacer(modifier = Modifier.height(18.dp))

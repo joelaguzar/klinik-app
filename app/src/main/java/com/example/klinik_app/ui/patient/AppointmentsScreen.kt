@@ -73,18 +73,6 @@ import com.example.klinik_app.data.Appointment as DataAppointment
 import com.example.klinik_app.data.AppointmentStatus as DataAppointmentStatus
 import com.example.klinik_app.data.DoctorResponse as DataDoctorResponse
 
-///TODO: FIREBASE - PATIENT APPOINTMENTS
-/// 1. Create AppointmentsViewModel with AppointmentRepository
-/// 2. Observe appointments in real-time:
-///    - firestore.collection("appointments")
-///        .whereEqualTo("patientId", currentUserId)
-///        .orderBy("createdAt", Query.Direction.DESCENDING)
-///        .snapshots()
-/// 3. Add loading/error states
-/// 4. Implement appointment cancellation
-/// 5. Add push notifications for appointment status changes
-/// 6. Store appointment data locally for offline viewing
-
 enum class AppointmentStatus {
     PENDING,
     ACCEPTED,

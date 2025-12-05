@@ -64,14 +64,6 @@ import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import com.example.klinik_app.data.Doctor as DataDoctor
 
-///TODO: FIREBASE - HOME CONTENT
-/// 1. Inject PatientHomeViewModel
-/// 2. Observe doctors list: val doctors by viewModel.doctorsFlow.collectAsState()
-/// 3. Observe current patient: val patient by viewModel.currentPatientFlow.collectAsState()
-/// 4. Add loading states and error handling
-/// 5. Implement search/filter for doctors by specialty
-/// 6. Cache doctors list locally for offline access
-
 data class DoctorCategory(
     val name: String,
     val iconRes: Int,
@@ -647,7 +639,6 @@ fun DoctorCard(doctor: Doctor, onViewDetailsClick: () -> Unit = {}) {
     }
 }
 
-/// TODO: SDG Bottom Sheet Content
 @Composable
 fun SDGBottomSheetContent(onDismiss: () -> Unit) {
     Column(
@@ -709,7 +700,7 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Klinik is an e-consultation platform designed to provide accessible and timely healthcare for all users, regardless of their location or schedule. By offering asynchronous consultations, users can receive medical advice and guidance at their own convenience, without needing to book in-person appointments or wait for long hours. Aligned with SDG 4: Good Health and Well-Being, Klinik's mission is to ensure equitable access to healthcare services and empower individuals to manage their health more effectively.",
+            text = "Klinik is an e-consultation platform designed to provide accessible and timely healthcare for all users, regardless of their location or schedule. By offering asynchronous consultations, users can receive medical advice and guidance at their own convenience, without needing to book in-person appointments or wait for long hours. Aligned with SDG 3: Good Health and Well-Being, Klinik's mission is to ensure equitable access to healthcare services and empower individuals to manage their health more effectively.",
             fontSize = 14.sp,
             color = PatientHomeColors.TextGray,
             textAlign = TextAlign.Start,

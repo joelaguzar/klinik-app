@@ -33,16 +33,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.klinik_app.ui.components.GlassBottomNavBar
 import com.example.klinik_app.ui.components.GlassNavItem
 
-///TODO: FIREBASE - PATIENT HOME SCREEN
-/// 1. Create PatientHomeViewModel with Firebase repositories
-/// 2. Observe current patient data from Firestore in real-time:
-///    - firestore.collection("patients").document(currentUserId).snapshots()
-/// 3. Observe doctors list for "Popular Doctors" section:
-///    - firestore.collection("doctors").orderBy("ratings", Query.Direction.DESCENDING).limit(10)
-/// 4. Load patient's profile image from Firebase Storage
-/// 5. Implement pull-to-refresh to reload data
-/// 6. Handle offline mode with Firestore persistence
-
 object PatientHomeColors {
     val Primary = Color(0xFF0A6B5E)
     val PrimaryLight = Color(0xFFE8F5F3)

@@ -28,15 +28,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.klinik_app.ui.components.GlassBottomNavBar
 import com.example.klinik_app.ui.components.GlassNavItem
 
-///TODO: FIREBASE - DOCTOR HOME SCREEN
-/// 1. Create DoctorHomeViewModel with Firebase repositories
-/// 2. Observe current doctor data from Firestore in real-time:
-///    - firestore.collection("doctors").document(currentUserId).snapshots()
-/// 3. Load doctor's profile image from Firebase Storage
-/// 4. Observe pending appointments count for badge display
-/// 5. Implement logout with Firebase.auth.signOut()
-/// 6. Handle offline mode with Firestore persistence
-
 object DoctorHomeColors {
     val Primary = Color(0xFF0A6B5E)
     val PrimaryLight = Color(0xFFE8F5F3)

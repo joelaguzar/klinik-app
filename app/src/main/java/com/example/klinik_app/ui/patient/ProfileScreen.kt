@@ -50,18 +50,6 @@ import androidx.compose.ui.unit.sp
 import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Patient
 
-///TODO: FIREBASE - PATIENT PROFILE
-/// 1. Create ProfileViewModel with PatientRepository
-/// 2. Observe current patient data in real-time:
-///    - firestore.collection("patients").document(currentUserId).snapshots()
-/// 3. Implement profile update:
-///    - firestore.collection("patients").document(currentUserId).update(updatedData)
-/// 4. Implement profile image upload:
-///    - storage.reference.child("profile_images/$userId.jpg").putFile(imageUri)
-///    - Update imageUrl field in patient document
-/// 5. Add edit mode for profile fields
-/// 6. Implement account deletion with confirmation
-
 @Composable
 fun ProfileScreen() {
     val scrollState = rememberScrollState()

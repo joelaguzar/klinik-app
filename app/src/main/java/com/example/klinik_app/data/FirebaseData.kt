@@ -41,7 +41,7 @@ data class Patient(
     val age: Int get() {
         return try {
             val birthYear = birthdate.substring(0, 4).toInt()
-            val currentYear = 2024 // You could use actual current year
+            val currentYear = 2025
             currentYear - birthYear
         } catch (e: Exception) {
             0
@@ -70,7 +70,7 @@ data class Doctor(
     val age: Int get() {
         return try {
             val birthYear = birthdate.substring(0, 4).toInt()
-            val currentYear = 2025  // I really would love to use LocalDate.now() but i'm on Java 24 not 26 soo
+            val currentYear = 2025
             currentYear - birthYear
         } catch (e: Exception) {
             0
@@ -97,15 +97,11 @@ data class Appointment(
     val updatedAt: String = ""
 )
 
-// ==================== MOCK DATA OBJECT ====================
-
 object FirebaseData {
 
-    // Default values present, just because.
     private var currentUserId: String = "";
     private var currentUserType: UserType = UserType.PATIENT;
     
-    // ==================== HELPER FUNCTIONS ====================
     suspend fun authenticate(email: String, password: String, selectedType: String): AuthResult? {
 
         val auth = FirebaseAuth.getInstance()
