@@ -35,6 +35,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -47,8 +49,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.Doctor
+import com.example.klinik_app.data.FirebaseData
 
 ///TODO: FIREBASE - DOCTOR PROFILE
 /// 1. Create DoctorProfileViewModel with DoctorRepository
@@ -64,8 +66,10 @@ import com.example.klinik_app.data.MockData
 @Composable
 fun DoctorProfileScreen() {
     val scrollState = rememberScrollState()
-    val currentDoctor = remember { MockData.getCurrentDoctor() }
-    
+    val currentDoctor by produceState<Doctor?>(initialValue = null) {
+        value = FirebaseData.getCurrentDoctor()
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -104,7 +108,7 @@ fun DoctorProfileScreen() {
                             .background(Color(0xFFF3F4F6))
                     ) {
                         Image(
-                            painter = painterResource(id = currentDoctor.imageRes),
+                            painter = painterResource(id = currentDoctor!!.imageRes),
                             contentDescription = "Profile Picture",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -114,20 +118,20 @@ fun DoctorProfileScreen() {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = currentDoctor.fullName,
+                        text = currentDoctor!!.fullName,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = DoctorHomeColors.TextDark
                     )
 
                     Text(
-                        text = "${currentDoctor.position} • ${currentDoctor.field}",
+                        text = "${currentDoctor!!.position} • ${currentDoctor!!.field}",
                         fontSize = 14.sp,
                         color = DoctorHomeColors.Primary
                     )
 
                     Text(
-                        text = currentDoctor.email,
+                        text = currentDoctor!!.email,
                         fontSize = 13.sp,
                         color = DoctorHomeColors.TextGray
                     )
@@ -145,13 +149,13 @@ fun DoctorProfileScreen() {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${currentDoctor.ratings}",
+                            text = "${currentDoctor!!.ratings}",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.Bold,
                             color = DoctorHomeColors.TextDark
                         )
                         Text(
-                            text = " (${currentDoctor.totalReviews} reviews)",
+                            text = " (${currentDoctor!!.totalReviews} reviews)",
                             fontSize = 14.sp,
                             color = DoctorHomeColors.TextGray
                         )
@@ -175,7 +179,7 @@ fun DoctorProfileScreen() {
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                currentDoctor.tags.forEach { tag ->
+                currentDoctor!!.tags.forEach { tag ->
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(20.dp))
@@ -216,27 +220,27 @@ fun DoctorProfileScreen() {
                     DoctorProfileInfoRow(
                         icon = Icons.Default.Person,
                         label = "Sex",
-                        value = currentDoctor.sex.displayName()
+                        value = currentDoctor!!.sex.displayName()
                     )
                     DoctorProfileInfoRow(
                         icon = Icons.Default.CalendarToday,
                         label = "Birthdate",
-                        value = currentDoctor.birthdate
+                        value = currentDoctor!!.birthdate
                     )
                     DoctorProfileInfoRow(
                         icon = Icons.Default.Email,
                         label = "Email",
-                        value = currentDoctor.email
+                        value = currentDoctor!!.email
                     )
                     DoctorProfileInfoRow(
                         icon = Icons.Default.Work,
                         label = "Position",
-                        value = currentDoctor.position
+                        value = currentDoctor!!.position
                     )
                     DoctorProfileInfoRow(
                         icon = Icons.Default.MedicalServices,
                         label = "Field",
-                        value = currentDoctor.field
+                        value = currentDoctor!!.field
                     )
                 }
             }
@@ -259,7 +263,7 @@ fun DoctorProfileScreen() {
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Text(
-                    text = currentDoctor.description,
+                    text = currentDoctor!!.description,
                     fontSize = 14.sp,
                     color = DoctorHomeColors.TextGray,
                     lineHeight = 22.sp,

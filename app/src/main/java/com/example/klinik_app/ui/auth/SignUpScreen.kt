@@ -31,11 +31,13 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -49,6 +51,10 @@ import com.example.klinik_app.GlassCard
 import com.example.klinik_app.KlinikGlassColors
 import com.example.klinik_app.R
 import com.example.klinik_app.SocialIconGlass
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 ///TODO: FIREBASE AUTHENTICATION - SIGN UP
 /// 1. Create SignUpViewModel to handle registration state
@@ -74,6 +80,7 @@ fun KlinikSignUpScreen(
     val formState = remember { SignUpFormState() }
     val validator = remember { SignUpValidator(formState) }
     val datePickerState = rememberDatePickerState()
+
 
     if (formState.showDatePicker) {
         DatePickerDialog(
@@ -224,29 +231,58 @@ private fun Step2Content(
     formState: SignUpFormState,
     validator: SignUpValidator
 ) {
+
+    // for error handling messages
+    val scope = rememberCoroutineScope()
+    val snackbarHostState = remember { SnackbarHostState() }
+
     when (formState.selectedUserType) {
         UserType.PATIENT -> SignUpStep2PatientContent(
             state = formState,
             validator = validator,
             onCreateAccount = {
+
+                val auth = FirebaseAuth.getInstance();
+                val firestore = FirebaseFirestore.getInstance();
+
                 if (validator.validateStep2Patient()) {
-                    ///TODO: Implement Firebase patient registration
-                    /// viewModel.registerPatient(
-                    ///     email = formState.email,
-                    ///     password = formState.password,
-                    ///     patientData = PatientData(
-                    ///         firstName = formState.firstName,
-                    ///         lastName = formState.lastName,
-                    ///         sex = formState.selectedSex,
-                    ///         birthdate = formState.birthdate,
-                    ///         height = formState.height,
-                    ///         weight = formState.weight,
-                    ///         bloodType = formState.bloodType
-                    ///     )
-                    /// ) { result ->
-                    ///     result.onSuccess { onNavigateToSignIn() }
-                    ///     result.onFailure { showError(it.message) }
-                    /// }
+
+                    val patientMap = hashMapOf(
+                        "email" to formState.email,
+                        "firstName" to formState.firstName,
+                        "lastName" to formState.lastName,
+                        "sex" to formState.selectedSex,
+                        "birthdate" to formState.birthdate?.let { time ->
+                            // format the date to ISO
+                            val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                            formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                            formatter.format(java.util.Date(time))
+                        },
+                        "height" to formState.height,
+                        "weight" to formState.weight,
+                        "bloodType" to formState.bloodType
+                    )
+
+
+                    auth.createUserWithEmailAndPassword(formState.email, formState.password)
+                        .addOnSuccessListener { task ->
+                            val id = task.user?.uid.toString();
+                            firestore.collection("patients")
+                                .document(id)
+                                .set(patientMap)
+
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up successful")
+                            }
+                            // onNavigateToSignIn();
+                        }
+                        .addOnFailureListener {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up failed. Check details")
+                            }
+                        }
+
+
                 }
             }
         )
@@ -255,26 +291,50 @@ private fun Step2Content(
             validator = validator,
             onCreateAccount = {
                 if (validator.validateStep2Doctor()) {
-                    ///TODO: Implement Firebase doctor registration
-                    /// viewModel.registerDoctor(
-                    ///     email = formState.email,
-                    ///     password = formState.password,
-                    ///     doctorData = DoctorData(
-                    ///         firstName = formState.firstName,
-                    ///         lastName = formState.lastName,
-                    ///         sex = formState.selectedSex,
-                    ///         birthdate = formState.birthdate,
-                    ///         title = formState.title,
-                    ///         field = formState.field,
-                    ///         tags = formState.tags.toList(),
-                    ///         description = formState.shortIntroduction,
-                    ///         ratings = 0.0,
-                    ///         totalReviews = 0
-                    ///     )
-                    /// ) { result ->
-                    ///     result.onSuccess { onNavigateToSignIn() }
-                    ///     result.onFailure { showError(it.message) }
-                    /// }
+
+                    val auth = FirebaseAuth.getInstance();
+                    val firestore = FirebaseFirestore.getInstance();
+
+                    val doctorMap = hashMapOf(
+                        "email" to formState.email,
+                        "firstName" to formState.firstName,
+                        "lastName" to formState.lastName,
+                        "sex" to formState.selectedSex,
+                        "birthdate" to formState.birthdate?.let { time ->
+                            // format the date to ISO
+                            val formatter = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+                            formatter.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                            formatter.format(java.util.Date(time))
+                        },
+                        "title" to formState.title,
+                        "field" to formState.field,
+                        "tags" to formState.tags.toList(),
+                        "description" to formState.shortIntroduction,
+                        "ratings" to 0.0,
+                        "totalReviews" to 0
+                    )
+
+                    auth.createUserWithEmailAndPassword(formState.email, formState.password)
+                        .addOnSuccessListener { task ->
+                            val id = task.user?.uid.toString();
+
+                            firestore.collection("doctors")
+                                .document(id)
+                                .set(doctorMap);
+
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up successful")
+                            }
+
+                            // redirect to sign in page
+
+                        }
+
+                        .addOnFailureListener {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Sign up failed. Check details")
+                            }
+                        }
                 }
             }
         )
@@ -326,6 +386,8 @@ private fun SignUpFooter(onNavigateToSignIn: () -> Unit) {
             modifier = Modifier.clickable { onNavigateToSignIn() }
         )
     }
+
+    Spacer(modifier = Modifier.height(25.dp))
 }
 
 @Preview(showBackground = true, heightDp = 1000)

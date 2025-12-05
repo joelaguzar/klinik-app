@@ -33,6 +33,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -40,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +53,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -58,8 +60,9 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.UserType
+import kotlinx.coroutines.launch
 
 ///TODO: FIREBASE AUTHENTICATION - SIGN IN
 /// 1. Create AuthViewModel to handle authentication state
@@ -97,6 +100,12 @@ fun KlinikSignInScreen(
     var password by remember { mutableStateOf("") }
     var isVisible by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+
+    // to handle async code
+    val coroutineScope = rememberCoroutineScope()
+
+    // for error handling messages
+    val snackbarHostState = remember { SnackbarHostState() }
 
     Box(
         modifier = Modifier
@@ -225,22 +234,15 @@ fun KlinikSignInScreen(
 
                     Button(
                         onClick = {
-                            ///TODO: Replace with Firebase Authentication
-                            /// viewModel.signIn(email, password) { result ->
-                            ///     result.onSuccess { authResult ->
-                            ///         val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
-                            ///         onSignInSuccess(role)
-                            ///     }.onFailure { error ->
-                            ///         errorMessage = error.message ?: "Authentication failed"
-                            ///     }
-                            /// }
-                            val authResult = MockData.authenticate(email, password)
-                            if (authResult != null) {
-                                MockData.setCurrentUser(authResult.userId, authResult.userType)
-                                val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
-                                onSignInSuccess(role)
-                            } else {
-                                errorMessage = "Invalid email or password"
+                            coroutineScope.launch {
+                                val authResult = FirebaseData.authenticate(email, password, selectedRole)
+                                if (authResult != null) {
+                                    FirebaseData.setCurrentUser(authResult.userId, authResult.userType)
+                                    val role = if (authResult.userType == UserType.DOCTOR) "doctor" else "patient"
+                                    onSignInSuccess(role)
+                                } else {
+                                    snackbarHostState.showSnackbar("Login failed. Check details.")
+                                }
                             }
                         },
                         modifier = Modifier
@@ -272,22 +274,22 @@ fun KlinikSignInScreen(
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        text = "Demo: john.williamson@email.com / password123",
+                        text = "Demo: joel.aguzar@sample.com / JoelLazernieA1",
                         fontSize = 10.sp,
                         color = KlinikGlassColors.TextGray,
                         modifier = Modifier.clickable {
-                            email = "john.williamson@email.com"
-                            password = "password123"
+                            email = "joel.aguzar@sample.com"
+                            password = "JoelLazernieA1"
                             selectedRole = "patient"
                         }
                     )
                     Text(
-                        text = "Doctor: chloe.kelly@klinik.com / doctor123",
+                        text = "Doctor: doktor.erix@klinik.com / ErixCrisostomoB2",
                         fontSize = 10.sp,
                         color = KlinikGlassColors.TextGray,
                         modifier = Modifier.clickable {
-                            email = "chloe.kelly@klinik.com"
-                            password = "doctor123"
+                            email = "doktor.erix@klinik.com "
+                            password = "ErixCrisostomoB2"
                             selectedRole = "doctor"
                         }
                     )
@@ -337,7 +339,14 @@ fun KlinikSignInScreen(
                     modifier = Modifier.clickable { onNavigateToSignUp() }
                 )
             }
+
+            Spacer(modifier = Modifier.height(25.dp))
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 

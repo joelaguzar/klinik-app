@@ -38,6 +38,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -54,9 +55,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
 import com.example.klinik_app.data.Patient
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
 import com.example.klinik_app.data.Doctor as DataDoctor
 
 ///TODO: FIREBASE - HOME CONTENT
@@ -138,7 +143,13 @@ fun HomeContent(
     val scope = rememberCoroutineScope()
     var showBottomSheet by remember { mutableStateOf(false) }
 
-    val currentPatient = MockData.getCurrentPatient()
+    val currentPatient by produceState<Patient?>(initialValue = null) {
+        withContext(Dispatchers.IO) {
+            value = FirebaseData.getCurrentPatient()
+        }
+    }
+
+
     val patientInfo = currentPatient?.let { PatientInfo.fromPatient(it) } ?: PatientInfo(
         age = 28,
         height = "175 cm",
@@ -354,14 +365,14 @@ fun SearchBanner(onSDGClick: () -> Unit = {}) {
                     .padding(start = 24.dp, top = 20.dp, bottom = 20.dp)
             ) {
                 Text(
-                    text = "Looking for",
-                    fontSize = 20.sp,
+                    text = "Aligned with SDG 3",
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
                     color = PatientHomeColors.TextDark
                 )
                 Text(
-                    text = "desired doctor?",
-                    fontSize = 20.sp,
+                    text = "Good Health and Well Being",
+                    fontSize = 17.sp,
                     fontWeight = FontWeight.Medium,
                     color = PatientHomeColors.TextDark
                 )
@@ -481,18 +492,31 @@ fun DoctorCategoryItem(category: DoctorCategory) {
 
 @Composable
 fun PopularDoctorsSection(onDoctorClick: (Doctor) -> Unit = {}) {
-    ///TODO: Replace MockData with Firebase Firestore query
-    /// val doctors by viewModel.doctorsFlow.collectAsState(initial = emptyList())
-    /// 
-    /// ViewModel implementation:
-    /// val doctorsFlow: Flow<List<Doctor>> = firestore
-    ///     .collection("doctors")
-    ///     .orderBy("ratings", Query.Direction.DESCENDING)
-    ///     .limit(10)
-    ///     .snapshots()
-    ///     .map { snapshot -> snapshot.toObjects<Doctor>() }
-    val doctors = remember {
-        MockData.doctors.map { Doctor.fromDataDoctor(it) }
+
+    val doctors by produceState<List<Doctor>>(initialValue = emptyList()) {
+        try {
+
+            val firestore = FirebaseFirestore.getInstance()
+            val snapshot = firestore.collection("doctors").get().await()
+
+            val tempList = mutableListOf<Doctor>()
+            for (document in snapshot.documents) {
+                val doctorItem = document.toObject(DataDoctor::class.java)
+
+                if (doctorItem != null) {
+                    val finalDoctor = doctorItem.copy(id = document.id)
+                    tempList.add(Doctor.fromDataDoctor(finalDoctor))
+                }
+            }
+
+            tempList.sortByDescending { it.rating }
+
+            value = tempList
+
+        } catch (e: Exception) {
+            e.printStackTrace()
+            value = emptyList()
+        }
     }
 
     Column(modifier = Modifier.padding(horizontal = 20.dp)) {
@@ -685,7 +709,7 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
         Spacer(modifier = Modifier.height(20.dp))
 
         Text(
-            text = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\nDuis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+            text = "Klinik is an e-consultation platform designed to provide accessible and timely healthcare for all users, regardless of their location or schedule. By offering asynchronous consultations, users can receive medical advice and guidance at their own convenience, without needing to book in-person appointments or wait for long hours. Aligned with SDG 4: Good Health and Well-Being, Klinik's mission is to ensure equitable access to healthcare services and empower individuals to manage their health more effectively.",
             fontSize = 14.sp,
             color = PatientHomeColors.TextGray,
             textAlign = TextAlign.Start,
@@ -711,10 +735,10 @@ fun SDGBottomSheetContent(onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                SDGTargetItem(text = "Reduce maternal mortality")
-                SDGTargetItem(text = "End preventable deaths of newborns and children")
-                SDGTargetItem(text = "Fight communicable diseases")
-                SDGTargetItem(text = "Ensure universal access to healthcare services")
+                SDGTargetItem(text = "Provide universal access to healthcare")
+                SDGTargetItem(text = "Achieve universal healthcare coverage")
+                SDGTargetItem(text = "Reduce deaths from non-communicable diseases")
+                SDGTargetItem(text = "Strengthen health risk management")
             }
         }
 

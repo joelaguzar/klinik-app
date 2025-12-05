@@ -33,6 +33,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,8 +47,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
+import com.example.klinik_app.data.FirebaseData
+import com.example.klinik_app.data.Patient
 
 ///TODO: FIREBASE - PATIENT PROFILE
 /// 1. Create ProfileViewModel with PatientRepository
@@ -63,7 +65,9 @@ import com.example.klinik_app.data.MockData
 @Composable
 fun ProfileScreen() {
     val scrollState = rememberScrollState()
-    val currentPatient = remember { MockData.getCurrentPatient() }
+    val currentPatient by produceState<Patient?>(initialValue = null) {
+        value = FirebaseData.getCurrentPatient()
+    }
     
     Column(
         modifier = Modifier
@@ -103,7 +107,7 @@ fun ProfileScreen() {
                             .background(Color(0xFFF3F4F6))
                     ) {
                         Image(
-                            painter = painterResource(id = currentPatient.imageRes),
+                            painter = painterResource(id = currentPatient!!.imageRes),
                             contentDescription = "Profile Picture",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -113,14 +117,14 @@ fun ProfileScreen() {
                     Spacer(modifier = Modifier.height(16.dp))
 
                     Text(
-                        text = currentPatient.fullName,
+                        text = currentPatient!!.fullName,
                         fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
                         color = PatientHomeColors.TextDark
                     )
 
                     Text(
-                        text = currentPatient.email,
+                        text = currentPatient!!.email,
                         fontSize = 14.sp,
                         color = PatientHomeColors.TextGray
                     )
@@ -151,17 +155,17 @@ fun ProfileScreen() {
                     ProfileInfoRow(
                         icon = Icons.Default.Person,
                         label = "Sex",
-                        value = currentPatient.sex.displayName()
+                        value = currentPatient!!.sex.displayName()
                     )
                     ProfileInfoRow(
                         icon = Icons.Default.CalendarToday,
                         label = "Birthdate",
-                        value = currentPatient.birthdate
+                        value = currentPatient!!.birthdate
                     )
                     ProfileInfoRow(
                         icon = Icons.Default.Email,
                         label = "Email",
-                        value = currentPatient.email
+                        value = currentPatient!!.email
                     )
                 }
             }
@@ -190,17 +194,17 @@ fun ProfileScreen() {
                     ProfileInfoRow(
                         icon = Icons.Default.Height,
                         label = "Height",
-                        value = currentPatient.height
+                        value = currentPatient!!.height
                     )
                     ProfileInfoRow(
                         icon = Icons.Default.MonitorWeight,
                         label = "Weight",
-                        value = currentPatient.weight
+                        value = currentPatient!!.weight
                     )
                     ProfileInfoRow(
                         icon = Icons.Default.Bloodtype,
                         label = "Blood Type",
-                        value = currentPatient.bloodType
+                        value = currentPatient!!.bloodType
                     )
                 }
             }

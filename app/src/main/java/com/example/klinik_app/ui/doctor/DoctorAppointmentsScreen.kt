@@ -36,7 +36,6 @@ import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.MedicalServices
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -51,6 +50,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -68,21 +68,15 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.klinik_app.R
-import com.example.klinik_app.data.MockData
-import com.example.klinik_app.data.AppointmentStatus as DataAppointmentStatus
+import com.example.klinik_app.data.FirebaseData
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.Dispatchers
 import com.example.klinik_app.data.Appointment as DataAppointment
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-///TODO: FIREBASE - DOCTOR APPOINTMENTS MANAGEMENT
-/// 1. Create DoctorAppointmentsViewModel
-/// 2. Observe all appointments for doctor + pending unassigned:
-/// 3. Implement Accept appointment:
-/// 4. Implement Decline appointment:
-/// 5. Implement Complete appointment:
-/// 6. Send push notifications to patient on status changes
 
 data class DoctorAppointment(
     val id: String,
@@ -100,8 +94,8 @@ data class DoctorAppointment(
     val updatedAt: String
 ) {
     companion object {
-        fun fromDataAppointment(dataAppointment: DataAppointment): DoctorAppointment {
-            val patient = MockData.getPatientById(dataAppointment.patientId)
+        suspend fun fromDataAppointment(dataAppointment: DataAppointment): DoctorAppointment {
+            val patient = FirebaseData.getPatientById(dataAppointment.patientId)
             return DoctorAppointment(
                 id = dataAppointment.id,
                 patientId = dataAppointment.patientId,
@@ -139,21 +133,25 @@ fun DoctorAppointmentsScreen() {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val scope = rememberCoroutineScope()
 
-    val currentDoctor = MockData.getCurrentDoctor()
+    val allAppointments by produceState<List<DoctorAppointment>>(initialValue = emptyList()) {
+        withContext(Dispatchers.IO) {
+            val currentDoctor = FirebaseData.getCurrentDoctor()
 
-    val allAppointments = remember(currentDoctor) {
-        val doctorAppointments = if (currentDoctor != null) {
-            MockData.getAppointmentsForDoctor(currentDoctor.id)
-        } else {
-            emptyList()
+            val doctorAppointments = if (currentDoctor != null) {
+                FirebaseData.getAppointmentsForDoctor(currentDoctor.id)
+            } else {
+                emptyList()
+            }
+
+            val pendingAppointments = FirebaseData.getPendingAppointments()
+
+            value = (doctorAppointments + pendingAppointments)
+                .distinctBy { it.id }
+                .map { DoctorAppointment.fromDataAppointment(it) }
         }
-
-        val pendingAppointments = MockData.getPendingAppointments()
-
-        (doctorAppointments + pendingAppointments)
-            .distinctBy { it.id }
-            .map { DoctorAppointment.fromDataAppointment(it) }
     }
+
+
 
     val filteredAppointments = remember(selectedFilter, allAppointments) {
         when (selectedFilter) {
@@ -180,28 +178,21 @@ fun DoctorAppointmentsScreen() {
                     }
                 },
                 onAccept = {
-                    ///TODO: Implement Firebase accept appointment
-                    /// viewModel.acceptAppointment(
-                    ///     appointmentId = selectedAppointment!!.id,
-                    ///     diagnosis = "", // Get from input field
-                    ///     recommendations = "" // Get from input field
-                    /// ) { result ->
-                    ///     result.onSuccess { /* Show success message */ }
-                    ///     result.onFailure { /* Show error */ }
-                    /// }
+
+                    scope.launch {
+                        FirebaseData.acceptAppointment(selectedAppointment!!.id)
+                    }
+
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         selectedAppointment = null
                     }
                 },
                 onDecline = {
-                    ///TODO: Implement Firebase decline appointment
-                    /// viewModel.declineAppointment(
-                    ///     appointmentId = selectedAppointment!!.id,
-                    ///     reason = "" // Get from input field
-                    /// ) { result ->
-                    ///     result.onSuccess { /* Show success message */ }
-                    ///     result.onFailure { /* Show error */ }
-                    /// }
+
+                    scope.launch {
+                        FirebaseData.declineAppointment(selectedAppointment!!.id)
+                    }
+
                     scope.launch { sheetState.hide() }.invokeOnCompletion {
                         selectedAppointment = null
                     }
