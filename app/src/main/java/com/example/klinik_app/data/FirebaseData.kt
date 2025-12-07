@@ -138,6 +138,15 @@ object FirebaseData {
             return null;
         }
     }
+
+    suspend fun resetPassword(email: String) {
+
+        val auth = FirebaseAuth.getInstance()
+
+        auth.sendPasswordResetEmail(email)
+            .await()
+
+    }
     
     suspend fun getPatientById(id: String): Patient? {
         val firestore = FirebaseFirestore.getInstance()
@@ -293,8 +302,6 @@ object FirebaseData {
             false
         }
     }
-
-
 
     // get doctor name for an appointment
     suspend fun getDoctorNameForAppointment(appointment: Appointment): String? {

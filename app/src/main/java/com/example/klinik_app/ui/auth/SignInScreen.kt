@@ -27,15 +27,18 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -95,6 +98,9 @@ fun KlinikSignInScreen(
 
     // for error handling messages
     val snackbarHostState = remember { SnackbarHostState() }
+
+    // for forgot password dialog
+    var showForgotPassword by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
@@ -200,12 +206,15 @@ fun KlinikSignInScreen(
                             .padding(top = 16.dp),
                         contentAlignment = Alignment.CenterEnd
                     ) {
+
                         Text(
                             text = "Forgot Password?",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = KlinikGlassColors.Blue,
-                            modifier = Modifier.clickable {}
+                            modifier = Modifier.clickable {
+                                showForgotPassword = true
+                            }
                         )
                     }
 
@@ -310,6 +319,23 @@ fun KlinikSignInScreen(
 
             Spacer(modifier = Modifier.height(25.dp))
         }
+
+        if(showForgotPassword) {
+            ForgotPasswordDialog(
+                onDismiss = { showForgotPassword = false },
+                onSuccess = {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("Email sent successfully!")
+                    }
+                },
+                onFailure = {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar("There was an error with processing your request.")
+                    }
+                }
+            )
+        }
+
 
         SnackbarHost(
             hostState = snackbarHostState,
@@ -497,6 +523,61 @@ fun RoleOption(
     }
 }
 
+@Composable
+fun ForgotPasswordDialog(
+    onDismiss: () -> Unit,
+    onFailure: () -> Unit,
+    onSuccess: () -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    val scope = rememberCoroutineScope()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(text = "Forgot Password") },
+        text = {
+            Column {
+                Text(
+                    text = "Enter your email address to reset your password.",
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { email = it },
+                    label = { Text("Email") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    scope.launch {
+                        try {
+                            FirebaseData.resetPassword(email)
+                            onSuccess()
+                            onDismiss()
+                        } catch (e: Exception) {
+                            onFailure()
+                            onDismiss()
+                        }
+                    }
+                }
+            ) {
+                Text("Send Reset Link")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
 @Preview(showBackground = true, heightDp = 900)
 @Composable
 fun PreviewKlinikFinal() {
@@ -504,3 +585,4 @@ fun PreviewKlinikFinal() {
         KlinikSignInScreen()
     }
 }
+
