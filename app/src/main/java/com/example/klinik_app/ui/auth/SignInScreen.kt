@@ -300,8 +300,22 @@ fun KlinikSignInScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-                SocialIconGlass(iconRes = R.drawable.ic_facebook)
-                SocialIconGlass(iconRes = R.drawable.ic_google)
+                SocialIconGlass(
+                    iconRes = R.drawable.ic_facebook,
+                    onClick = {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Feature coming soon!")
+                        }
+                    }
+                )
+                SocialIconGlass(
+                    iconRes = R.drawable.ic_google,
+                    onClick = {
+                        coroutineScope.launch {
+                            snackbarHostState.showSnackbar("Feature coming soon!")
+                        }
+                    }
+                )
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -442,14 +456,16 @@ fun GlassTextField(
 }
 
 @Composable
-fun SocialIconGlass(iconRes: Int) {
+fun SocialIconGlass(iconRes: Int, onClick: () -> Unit) {
     Box(
         modifier = Modifier
             .size(60.dp)
             .border(1.dp, Color.White, CircleShape)
             .clip(CircleShape)
             .background(Color.White.copy(alpha = 0.7f))
-            .clickable { },
+            .clickable {
+                onClick()
+            },
         contentAlignment = Alignment.Center
     ) {
         Image(

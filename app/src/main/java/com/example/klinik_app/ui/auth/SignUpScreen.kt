@@ -31,6 +31,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -67,6 +68,8 @@ fun KlinikSignUpScreen(
     val formState = remember { SignUpFormState() }
     val validator = remember { SignUpValidator(formState) }
     val datePickerState = rememberDatePickerState()
+    val snackbarHostState = remember { SnackbarHostState() }
+
 
 
     if (formState.showDatePicker) {
@@ -132,11 +135,19 @@ fun KlinikSignUpScreen(
             }
 
             if (formState.currentStep == 1) {
-                SignUpFooter(onNavigateToSignIn = onNavigateToSignIn)
+                SignUpFooter(
+                    onNavigateToSignIn = onNavigateToSignIn,
+                    snackbarHostState = snackbarHostState
+                )
             } else {
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
+
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier.align(Alignment.BottomCenter)
+        )
     }
 }
 
@@ -334,8 +345,13 @@ private fun Step2Content(
 }
 
 @Composable
-private fun SignUpFooter(onNavigateToSignIn: () -> Unit) {
+private fun SignUpFooter(
+    onNavigateToSignIn: () -> Unit,
+    snackbarHostState: SnackbarHostState
+) {
     Spacer(modifier = Modifier.height(18.dp))
+
+    val scope = rememberCoroutineScope()
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         HorizontalDivider(
@@ -357,8 +373,22 @@ private fun SignUpFooter(onNavigateToSignIn: () -> Unit) {
     Spacer(modifier = Modifier.height(16.dp))
 
     Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-        SocialIconGlass(iconRes = R.drawable.ic_facebook)
-        SocialIconGlass(iconRes = R.drawable.ic_google)
+        SocialIconGlass(
+            iconRes = R.drawable.ic_facebook,
+            onClick = {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Feature coming soon!")
+                }
+            }
+        )
+        SocialIconGlass(
+            iconRes = R.drawable.ic_google,
+            onClick = {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Feature coming soon!")
+                }
+            }
+        )
     }
 
     Spacer(modifier = Modifier.height(18.dp))
